@@ -8,25 +8,28 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 set( BUILD_LEGACY OFF CACHE BOOL "Build plug-in for OpenSim 3.x" FORCE )
 
-set( OPENSIM_DIR ${CMAKE_SOURCE_DIR}/OpenSim CACHE PATH "OpenSim installation directory" FORCE )
-set( SIMBODY_DIR ${CMAKE_SOURCE_DIR}/simbody CACHE PATH "Simbody installation directory" FORCE )
-set( CONTROL_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../Robot-Control-Library CACHE PATH "Robot Control Library base directory" FORCE )
-set( MODULES_DIR ${CONTROL_LIBRARY_DIR}/robot_control CACHE PATH "Plug-in output directory" FORCE )
-
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${MODULES_DIR} )
-
-#include_directories( ${CONTROL_LIBRARY_DIR} ${OPENSIM_DIR}/include ${SIMBODY_DIR}/include )
-link_directories( ${OPENSIM_DIR}/lib ${SIMBODY_DIR}/lib )
+set( OPENSIM_HOME ${CMAKE_SOURCE_DIR}/OpenSim CACHE PATH "OpenSim installation path" )
+set( SIMBODY_HOME ${CMAKE_SOURCE_DIR}/simbody CACHE PATH "Simbody installation path" )
+set( CONTROL_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../Robot-Control-Library CACHE PATH "Robot Control Library base directory" )
+set( UTILS_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../Platform-Utils CACHE PATH "Platform Utils library base directory" )
+set( MODULES_DIR ${CONTROL_LIBRARY_DIR} CACHE PATH "Plug-in output directory" )
 
 if( BUILD_LEGACY )
+  find_package( Simbody 3.5 PATHS "${SIMBODY_HOME}" NO_MODULE NO_DEFAULT_PATH )
+  find_package( OpenSim 3.3 PATHS "${OPENSIM_HOME}" NO_MODULE NO_DEFAULT_PATH )
   add_library( OpenSimModel MODULE open_sim_model-legacy.cpp )
 else()
+  find_package( Simbody 3.6 PATHS "${SIMBODY_HOME}" NO_MODULE NO_DEFAULT_PATH )
+  find_package( OpenSim 4.0 PATHS "${OPENSIM_HOME}" NO_MODULE NO_DEFAULT_PATH )
   add_library( OpenSimModel MODULE open_sim_model.cpp )
 endif()
 
-set_target_properties( OpenSimModel PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/robot_control/ )
+mark_as_advanced( Simbody_DIR )
+mark_as_advanced( OpenSim_DIR )
+
+set_target_properties( OpenSimModel PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${MODULES_DIR}/robot_control )
 set_target_properties( OpenSimModel PROPERTIES PREFIX "" )
-target_include_directories( OpenSimModel PUBLIC ${CONTROL_LIBRARY_DIR} ${OPENSIM_DIR}/include ${SIMBODY_DIR}/include )
-target_link_libraries( OpenSimModel -lSimTKcommon -lSimTKmath -lSimTKsimbody -losimActuators -losimAnalyses -losimCommon -losimLepton -losimSimulation -losimTools )
+target_include_directories( OpenSimModel PUBLIC ${CONTROL_LIBRARY_DIR} ${UTILS_LIBRARY_DIR} ${OpenSim_INCLUDE_DIRS} ${Simbody_INCLUDE_DIRS} )
+target_link_libraries( OpenSimModel ${OpenSim_LIBRARIES} ${Simbody_LIBRARIES} )
 
 # install( TARGETS RobRehabGui RobRehabServer RUNTIME DESTINATION . )
