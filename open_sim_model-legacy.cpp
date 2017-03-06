@@ -5,6 +5,9 @@
 #include <Simulation/CoordinateReference.h>
 #include <Simulation/InverseKinematicsSolver.h>
 
+#include <iostream>
+#include <string>
+
 #include "robot_control/interface.h"
 
 class MarkersReferenceStream : public OpenSim::MarkersReference
@@ -26,26 +29,26 @@ public:
   //--------------------------------------------------------------------------
   // Reference Interface
   //--------------------------------------------------------------------------
-  int getNumRefs() const override { return markerNames.size(); }
+  int getNumRefs() { return markerNames.size(); }
   /** get the time range for which the MarkersReference values are valid,	based on the loaded marker data.*/
-  SimTK::Vec2 getValidTimeRange() const override { return SimTK::Vec2( 0.0, 1.0 ); }
+  SimTK::Vec2 getValidTimeRange() { return SimTK::Vec2( 0.0, 1.0 ); }
   /** get the names of the markers serving as references */
-  const SimTK::Array_<std::string>& getNames() const override { return markerNames; }
+  const SimTK::Array_<std::string>& getNames() { return markerNames; }
   /** get the value of the MarkersReference */
-  void getValues( const SimTK::State &s, SimTK::Array_<SimTK::Vec3> &values ) const override { values = markerValues; }
+  void getValues( const SimTK::State &s, SimTK::Array_<SimTK::Vec3> &values ) { values = markerValues; }
   /** get the speed value of the MarkersReference */
   //virtual void getSpeedValues(const SimTK::State &s, SimTK::Array_<SimTK::Vec3> &speedValues) const;
   /** get the acceleration value of the MarkersReference */
   //virtual void getAccelerationValues(const SimTK::State &s, SimTK::Array_<SimTK::Vec3> &accValues) const;
   /** get the weighting (importance) of meeting this MarkersReference in the same order as names*/
-  void getWeights( const SimTK::State &s, SimTK::Array_<double> &weights ) const override { weights = markerWeights; }
+  void getWeights( const SimTK::State &s, SimTK::Array_<double> &weights ) { weights = markerWeights; }
   
   // Custom Methods
   void setReference( std::string name, double weight ) 
   { 
     markerNames.push_back( name );
     markerValues.push_back( SimTK::Vec3( 0 ) );
-    markerWeights.push_back( weight );
+	markerWeights.push_back( (SimTK::Real) weight );
     _markerWeightSet.adoptAndAppend( new OpenSim::MarkerWeight( name, weight ) );
     std::cout << "MarkersReference: references list " << markerNames << std::endl;
   }
@@ -58,7 +61,7 @@ private:
   SimTK::Array_<double> markerWeights;
 };
 
-typedef struct _ControllerData
+typedef struct _ControlData
 {
   OpenSim::Model* osimModel;
   SimTK::State state;
@@ -73,17 +76,15 @@ typedef struct _ControllerData
   SimTK::Array_<size_t> markerReferenceAxes;
   SimTK::Array_<char*> axisNames;
 }
-ControllerData;
-
-typedef void* Controller;
+ControlData;
 
 
 DECLARE_MODULE_INTERFACE( ROBOT_CONTROL_INTERFACE )
 
 
-Controller InitController( const char* data )
+RobotController InitController( const char* data )
 {
-  ControllerData* newModel = new ControllerData;
+  ControlData* newModel = new ControlData;
   
   try 
   {
@@ -140,37 +141,37 @@ Controller InitController( const char* data )
     newModel->manager = new OpenSim::Manager( *(newModel->osimModel), *(newModel->integrator) ); 
     
     newModel->manager->setInitialTime( 0.0 );
-    newModel->manager->setFinalTime( CONTROL_PASS_INTERVAL ); std::cout << "OSim: integration manager created" << std::endl;
+    newModel->manager->setFinalTime( 0.005 ); std::cout << "OSim: integration manager created" << std::endl;
   }
   catch( OpenSim::Exception ex )
   {
     std::cout << ex.getMessage() << std::endl;
-    EndController( (Controller) newModel );
+    EndController( (RobotController) newModel );
     return NULL;
   }
   catch( std::exception ex )
   {
     std::cout << ex.what() << std::endl;
-    EndController( (Controller) newModel );
+    EndController( (RobotController) newModel );
     return NULL;
   }
   catch( ... )
   {
     std::cout << "UNRECOGNIZED EXCEPTION" << std::endl;
-    EndController( (Controller) newModel );
+    EndController( (RobotController) newModel );
     return NULL;
   }
   
   std::cout << "OpenSim model loaded successfully ! (" << newModel->osimModel->getNumCoordinates() << " coordinates)" << std::endl;
   
-  return (Controller) newModel;
+  return (RobotController) newModel;
 }
 
-void EndController( Controller controller )
+void EndController( RobotController RobotController )
 {
-  if( controller == NULL ) return;
+  if( RobotController == NULL ) return;
   
-  ControllerData* model = (ControllerData*) controller;
+  ControlData* model = (ControlData*) RobotController;
   
   delete model->integrator;
   delete model->manager;
@@ -184,47 +185,47 @@ void EndController( Controller controller )
   delete model;
 }
 
-size_t GetJointsNumber( Controller controller )
+size_t GetJointsNumber( RobotController RobotController )
 {
-  if( controller == NULL ) return 0;
+  if( RobotController == NULL ) return 0;
   
-  ControllerData* model = (ControllerData*) controller;
+  ControlData* model = (ControlData*) RobotController;
   
   return (size_t) model->coordinatesList.getSize();
 }
 
-char** GetJointNamesList( Controller controller )
+const char** GetJointNamesList( RobotController RobotController )
 {
-  if( controller == NULL ) return NULL;
+  if( RobotController == NULL ) return NULL;
   
-  ControllerData* model = (ControllerData*) controller;
+  ControlData* model = (ControlData*) RobotController;
   
-  return model->jointNames.data();
+  return (const char**) model->jointNames.data();
 }
 
-size_t GetAxesNumber( Controller controller )
+size_t GetAxesNumber( RobotController RobotController )
 {
-  if( controller == NULL ) return 0;
+  if( RobotController == NULL ) return 0;
   
-  ControllerData* model = (ControllerData*) controller;
+  ControlData* model = (ControlData*) RobotController;
   
   return (size_t) model->markers.getSize();
 }
 
-char** GetAxisNamesList( Controller controller )
+const char** GetAxisNamesList( RobotController RobotController )
 {
-  if( controller == NULL ) return NULL;
+  if( RobotController == NULL ) return NULL;
   
-  ControllerData* model = (ControllerData*) controller;
+  ControlData* model = (ControlData*) RobotController;
   
-  return model->axisNames.data();
+  return (const char**) model->axisNames.data();
 }
 
-void RunControlStep( Controller controller, ControlVariables** jointMeasuresList, ControlVariables** axisMeasuresList, ControlVariables** jointSetpointsList, ControlVariables** axisSetpointsList )
+void RunControlStep( RobotController RobotController, RobotVariables** jointMeasuresList, RobotVariables** axisMeasuresList, RobotVariables** jointSetpointsList, RobotVariables** axisSetpointsList, double timeDelta )
 {
-  if( controller == NULL ) return;
+  if( RobotController == NULL ) return;
   
-  ControllerData* model = (ControllerData*) controller;
+  ControlData* model = (ControlData*) RobotController;
   
   for( int jointIndex = 0; jointIndex < model->coordinatesList.getSize(); jointIndex++ )
   {
