@@ -10,6 +10,9 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\open_sim_model-legacy.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1B593630-4838-44A8-B504-3388ED47376A}</ProjectGuid>
     <RootNamespace>OpenSimWin32</RootNamespace>
@@ -40,7 +43,7 @@
     <OutDir>$(SolutionDir)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir />
+    <IntDir>$(SolutionDir)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>OpenSimModel</TargetName>
@@ -72,12 +75,6 @@
       <AdditionalDependencies>pthreadVC2.lib;SimTKcommon.lib;SimTKlapack.lib;SimTKmath.lib;SimTKsimbody.lib;osimActuators.lib;osimAnalyses.lib;osimCommon.lib;osimLepton.lib;osimSimulation.lib;osimTools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\open_sim_model-legacy.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\RobRehabSystem\src\control\robot_control\interface.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -1,3 +1,15 @@
 *.kdev4
 *.ipch
 *.opensdf
+*.tlog
+*.log
+*.pdb
+*.dll
+OpenSim-Win32/OpenSimModel.lib
+*.obj
+*.cache
+*.lastbuildstate
+*.idb
+*.unsuccessfulbuild
+*.exp
+*.manifest
