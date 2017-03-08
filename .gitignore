@@ -13,3 +13,4 @@ OpenSim-Win32/OpenSimModel.lib
 *.unsuccessfulbuild
 *.exp
 *.manifest
+*.suo

@@ -10,57 +10,6 @@
 
 #include "robot_control/interface.h"
 
-class MarkersReferenceStream : public OpenSim::MarkersReference
-{
-public:
-  MarkersReferenceStream() : OpenSim::MarkersReference()
-  {
-    std::cout << "marker reference stream constructor" << std::endl;
-  }
-
-  ~MarkersReferenceStream()
-  {
-    std::cout << "MarkersReference: marker reference stream destructor" << std::endl;
-    markerNames.clear();
-    markerValues.clear();
-    markerWeights.clear();
-  }
-
-  //--------------------------------------------------------------------------
-  // Reference Interface
-  //--------------------------------------------------------------------------
-  int getNumRefs() { return markerNames.size(); }
-  /** get the time range for which the MarkersReference values are valid,	based on the loaded marker data.*/
-  SimTK::Vec2 getValidTimeRange() { return SimTK::Vec2( 0.0, 1.0 ); }
-  /** get the names of the markers serving as references */
-  const SimTK::Array_<std::string>& getNames() { return markerNames; }
-  /** get the value of the MarkersReference */
-  void getValues( const SimTK::State &s, SimTK::Array_<SimTK::Vec3> &values ) { values = markerValues; }
-  /** get the speed value of the MarkersReference */
-  //virtual void getSpeedValues(const SimTK::State &s, SimTK::Array_<SimTK::Vec3> &speedValues) const;
-  /** get the acceleration value of the MarkersReference */
-  //virtual void getAccelerationValues(const SimTK::State &s, SimTK::Array_<SimTK::Vec3> &accValues) const;
-  /** get the weighting (importance) of meeting this MarkersReference in the same order as names*/
-  void getWeights( const SimTK::State &s, SimTK::Array_<double> &weights ) { weights = markerWeights; }
-  
-  // Custom Methods
-  void setReference( std::string name, double weight ) 
-  { 
-    markerNames.push_back( name );
-    markerValues.push_back( SimTK::Vec3( 0 ) );
-	markerWeights.push_back( (SimTK::Real) weight );
-    _markerWeightSet.adoptAndAppend( new OpenSim::MarkerWeight( name, weight ) );
-    std::cout << "MarkersReference: references list " << markerNames << std::endl;
-  }
-  
-  void setValue( int index, SimTK::Vec3& value ) { markerValues[ index ] = value; }
-  
-private:
-  SimTK::Array_<std::string> markerNames;
-  SimTK::Array_<SimTK::Vec3> markerValues;
-  SimTK::Array_<double> markerWeights;
-};
-
 typedef struct _ControlData
 {
   OpenSim::Model* osimModel;
@@ -72,9 +21,10 @@ typedef struct _ControlData
   SimTK::Array_<OpenSim::CoordinateReference> coordinateReferences;
   SimTK::Array_<char*> jointNames;
   OpenSim::MarkerSet markers;
-  MarkersReferenceStream markersReference;
+  OpenSim::MarkersReference markersReference;
   SimTK::Array_<size_t> markerReferenceAxes;
   SimTK::Array_<char*> axisNames;
+  std::vector<bool> axesChangedList;
 }
 ControlData;
 
@@ -122,18 +72,25 @@ RobotController InitController( const char* data )
         {
           std::cout << "OSim: found reference marker " << markerName << std::endl;
           newModel->markers.adoptAndAppend( &(markerSet[ markerIndex ]) );
-          newModel->markersReference.setReference( markerName, 1.0 );
+		  newModel->markersReference._markerNames.push_back( markerName );
+		  newModel->markersReference._weights.push_back( 1.0 );
+		  newModel->markersReference._markerWeightSet.adoptAndAppend( new OpenSim::MarkerWeight( markerName, 1.0 ) );
           newModel->markerReferenceAxes.push_back( referenceAxisIndex );
           newModel->axisNames.push_back( (char*) markerSet[ markerIndex ].getName().c_str() );
           break;
         }
       }
     }
+
+	newModel->axesChangedList.resize( markerSet.getSize() );
     
+	std::cout << "OSim: generated markers reference size" << newModel->markersReference.updMarkerWeightSet().getSize() << std::endl;
+	std::cout << "OSim: generated coordinates reference size: " << newModel->coordinateReferences.size() << std::endl;
     newModel->ikSolver = new OpenSim::InverseKinematicsSolver( *(newModel->osimModel), newModel->markersReference, newModel->coordinateReferences );
-    newModel->ikSolver->setAccuracy( 1.0e-4 );
-    newModel->state.updTime() = 0.0;
-    newModel->ikSolver->assemble( newModel->state ); std::cout << "OSim: IK solver created" << std::endl;
+	std::cout << "OSim: IK solver created" << std::endl;
+    //newModel->ikSolver->setAccuracy( 1.0e-4 );
+    //newModel->state.updTime() = 0.0;
+    newModel->ikSolver->assemble( newModel->state ); std::cout << "OSim: IK solver assembled" << std::endl;
     
     // Create the integrator and manager for the simulation.
     newModel->integrator = new SimTK::RungeKuttaMersonIntegrator( newModel->osimModel->getMultibodySystem() );
@@ -221,6 +178,15 @@ const char** GetAxisNamesList( RobotController RobotController )
   return (const char**) model->axisNames.data();
 }
 
+const bool* GetAxesChangedList( RobotController ref_controller )
+{
+  if( ref_controller == NULL ) return NULL;
+  
+  ControlData* controller = (ControlData*) ref_controller;
+  
+  return (const bool*) controller->axesChangedList.data();
+}
+
 void RunControlStep( RobotController RobotController, RobotVariables** jointMeasuresList, RobotVariables** axisMeasuresList, RobotVariables** jointSetpointsList, RobotVariables** axisSetpointsList, double timeDelta )
 {
   if( RobotController == NULL ) return;
@@ -258,7 +224,8 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
     //axisMeasuresTable[ 0 ][ CONTROL_FORCE ] = jointMeasuresTable[ 0 ][ CONTROL_FORCE ];
     
     markerPosition[ model->markerReferenceAxes[ markerIndex ] ] = axisSetpointsList[ markerIndex ]->position;
-    model->markersReference.setValue( markerIndex, markerPosition );
+    //model->markersReference.setValue( markerIndex, markerPosition );
+	//model->markersReference._markerData->getFrame( 0 ).updMarker( 0 ) = SimTK::Vec3( 0 );
   }
   
   model->ikSolver->track( model->state );  
