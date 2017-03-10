@@ -40,7 +40,6 @@ RobotController InitController( const char* data )
   {
     // Create an OpenSim model from XML (.osim) file
     std::cout << "OSim: trying to load model file " << data << std::endl; newModel->osimModel = new OpenSim::Model( std::string( "config/robots/" ) + std::string( data ) + ".osim" );
-    
     newModel->osimModel->printBasicInfo( std::cout );
     
     // Initialize the system (make copy)
@@ -86,11 +85,11 @@ RobotController InitController( const char* data )
     
 	std::cout << "OSim: generated markers reference size" << newModel->markersReference.updMarkerWeightSet().getSize() << std::endl;
 	std::cout << "OSim: generated coordinates reference size: " << newModel->coordinateReferences.size() << std::endl;
-    newModel->ikSolver = new OpenSim::InverseKinematicsSolver( *(newModel->osimModel), newModel->markersReference, newModel->coordinateReferences );
-	std::cout << "OSim: IK solver created" << std::endl;
+    //newModel->ikSolver = new OpenSim::InverseKinematicsSolver( *(newModel->osimModel), newModel->markersReference, newModel->coordinateReferences );
+	//std::cout << "OSim: IK solver created" << std::endl;
     //newModel->ikSolver->setAccuracy( 1.0e-4 );
     //newModel->state.updTime() = 0.0;
-    newModel->ikSolver->assemble( newModel->state ); std::cout << "OSim: IK solver assembled" << std::endl;
+    //newModel->ikSolver->assemble( newModel->state ); std::cout << "OSim: IK solver assembled" << std::endl;
     
     // Create the integrator and manager for the simulation.
     newModel->integrator = new SimTK::RungeKuttaMersonIntegrator( newModel->osimModel->getMultibodySystem() );
@@ -132,7 +131,7 @@ void EndController( RobotController RobotController )
   
   delete model->integrator;
   delete model->manager;
-  delete model->ikSolver;
+  //delete model->ikSolver;
   delete model->osimModel;
   
   model->markers.clearAndDestroy();
@@ -158,6 +157,15 @@ const char** GetJointNamesList( RobotController RobotController )
   ControlData* model = (ControlData*) RobotController;
   
   return (const char**) model->jointNames.data();
+}
+
+const bool* GetJointsChangedList( RobotController ref_controller )
+{
+  if( ref_controller == NULL ) return NULL;
+  
+  ControlData* controller = (ControlData*) ref_controller;
+  
+  return (const bool*) controller->axesChangedList.data();
 }
 
 size_t GetAxesNumber( RobotController RobotController )
@@ -187,17 +195,22 @@ const bool* GetAxesChangedList( RobotController ref_controller )
   return (const bool*) controller->axesChangedList.data();
 }
 
+void SetControlState( RobotController ref_controller, enum RobotState controlState )
+{
+  std::cout << "Setting robot control phase: " << controlState << std::endl;
+}
+
 void RunControlStep( RobotController RobotController, RobotVariables** jointMeasuresList, RobotVariables** axisMeasuresList, RobotVariables** jointSetpointsList, RobotVariables** axisSetpointsList, double timeDelta )
 {
   if( RobotController == NULL ) return;
   
   ControlData* model = (ControlData*) RobotController;
   
-  for( int jointIndex = 0; jointIndex < model->coordinatesList.getSize(); jointIndex++ )
-  {
-    model->coordinatesList[ jointIndex ].setValue( model->state, jointMeasuresList[ jointIndex ]->position );
-    model->coordinatesList[ jointIndex ].setSpeedValue( model->state, jointMeasuresList[ jointIndex ]->velocity );
-  }
+  //for( int jointIndex = 0; jointIndex < model->coordinatesList.getSize(); jointIndex++ )
+  //{
+  //  model->coordinatesList[ jointIndex ].setValue( model->state, jointMeasuresList[ jointIndex ]->position );
+  //  model->coordinatesList[ jointIndex ].setSpeedValue( model->state, jointMeasuresList[ jointIndex ]->velocity );
+  //}
   
   model->manager->integrate( model->state );
   
@@ -218,26 +231,26 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
     model->osimModel->getSimbodyEngine().getVelocity( model->state, model->markers[ markerIndex ].getBody(), model->markers[ markerIndex ].getOffset(), markerVelocity );
     model->osimModel->getSimbodyEngine().getAcceleration( model->state, model->markers[ markerIndex ].getBody(), model->markers[ markerIndex ].getOffset(), markerAcceleration );
     
-    axisMeasuresList[ markerIndex ]->position = markerPosition[ model->markerReferenceAxes[ markerIndex ] ];
-    axisMeasuresList[ markerIndex ]->velocity = markerVelocity[ model->markerReferenceAxes[ markerIndex ] ];
-    axisMeasuresList[ markerIndex ]->acceleration = markerAcceleration[ model->markerReferenceAxes[ markerIndex ] ];
+  //  axisMeasuresList[ markerIndex ]->position = markerPosition[ model->markerReferenceAxes[ markerIndex ] ];
+  //  axisMeasuresList[ markerIndex ]->velocity = markerVelocity[ model->markerReferenceAxes[ markerIndex ] ];
+  //  axisMeasuresList[ markerIndex ]->acceleration = markerAcceleration[ model->markerReferenceAxes[ markerIndex ] ];
     //axisMeasuresTable[ 0 ][ CONTROL_FORCE ] = jointMeasuresTable[ 0 ][ CONTROL_FORCE ];
     
-    markerPosition[ model->markerReferenceAxes[ markerIndex ] ] = axisSetpointsList[ markerIndex ]->position;
+    //markerPosition[ model->markerReferenceAxes[ markerIndex ] ] = axisSetpointsList[ markerIndex ]->position;
     //model->markersReference.setValue( markerIndex, markerPosition );
 	//model->markersReference._markerData->getFrame( 0 ).updMarker( 0 ) = SimTK::Vec3( 0 );
   }
   
-  model->ikSolver->track( model->state );  
+  //model->ikSolver->track( model->state );  
   
-  for( int jointIndex = 0; jointIndex < model->coordinatesList.getSize(); jointIndex++ )
-  {
-    jointSetpointsList[ 0 ]->position = model->coordinatesList[ jointIndex ].getValue( model->state );
-    jointSetpointsList[ 0 ]->velocity = model->coordinatesList[ jointIndex ].getSpeedValue( model->state );
-    jointSetpointsList[ 0 ]->acceleration = model->coordinatesList[ jointIndex ].getAccelerationValue( model->state );
+  //for( int jointIndex = 0; jointIndex < model->coordinatesList.getSize(); jointIndex++ )
+  //{
+  //  jointSetpointsList[ 0 ]->position = model->coordinatesList[ jointIndex ].getValue( model->state );
+  //  jointSetpointsList[ 0 ]->velocity = model->coordinatesList[ jointIndex ].getSpeedValue( model->state );
+  //  jointSetpointsList[ 0 ]->acceleration = model->coordinatesList[ jointIndex ].getAccelerationValue( model->state );
     //jointSetpointsTable[ 0 ][ CONTROL_FORCE ] = axisSetpointsTable[ 0 ][ CONTROL_FORCE ];
-  }
+  //}
   
   std::cout << "marker position: " << markerPosition << std::endl;
-  std::cout << "joint positions: " << model->coordinatesList[0].getValue(model->state) << ", " << model->coordinatesList[1].getValue(model->state) << std::endl;
+  //std::cout << "joint positions: " << model->coordinatesList[0].getValue(model->state) << ", " << model->coordinatesList[1].getValue(model->state) << std::endl;
 }
