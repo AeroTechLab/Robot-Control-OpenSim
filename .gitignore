@@ -15,3 +15,5 @@ OpenSim-Win32/OpenSimModel.lib
 *.manifest
 *.suo
 *.sdf
+build/*
+*.kate-swp

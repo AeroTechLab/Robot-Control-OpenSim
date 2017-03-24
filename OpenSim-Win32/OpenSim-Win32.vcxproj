@@ -64,14 +64,14 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\OpenSim-3.2\sdk\include;C:\Program Files %28x86%29\OpenSim-3.2\sdk\include\OpenSim;C:\Users\Adriano\Documents\Leonardo Jose\RobRehabSystem\src\control;C:\Users\Adriano\Documents\Leonardo Jose\RobRehabSystem\src\utils;C:\Program Files %28x86%29\Simbody-3.3.1\include;C:\Program Files %28x86%29\Simbody-3.3.1\include\simbody;C:\Program Files %28x86%29\Simbody-3.3.1\include\SimTKcommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Adriano\Documents\Leonardo Jose\RobRehabSystem\src\control;C:\Users\Adriano\Documents\Leonardo Jose\RobRehabSystem\src\utils;C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source;C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source\OpenSim;C:\Program Files %28x86%29\Simbody-3.3.1\include;C:\Program Files %28x86%29\Simbody-3.3.1\include\simbody;C:\Program Files %28x86%29\Simbody-3.3.1\include\SimTKcommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenSim-3.2\sdk\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-build\RelWithDebInfo;C:\Program Files %28x86%29\OpenSim-3.2\sdk\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>pthreadVC2.lib;SimTKcommon.lib;SimTKlapack.lib;SimTKmath.lib;SimTKsimbody.lib;osimActuators.lib;osimAnalyses.lib;osimCommon.lib;osimLepton.lib;osimSimulation.lib;osimTools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
