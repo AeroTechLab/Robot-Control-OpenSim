@@ -11,7 +11,27 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\open_sim_model-legacy.cpp" />
+    <ClCompile Include="..\curve_interpolation.cpp" />
+    <ClCompile Include="..\data_io.cpp" />
+    <ClCompile Include="..\data_logging.cpp" />
+    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\neural_network.cpp" />
+    <ClCompile Include="..\sensors.cpp" />
+    <ClCompile Include="..\signal_processing.cpp" />
+    <ClCompile Include="..\timing_windows.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\curve_interpolation.h" />
+    <ClInclude Include="..\data_io.h" />
+    <ClInclude Include="..\data_io_interface.h" />
+    <ClInclude Include="..\data_logging.h" />
+    <ClInclude Include="..\robot_control_interface.h" />
+    <ClInclude Include="..\modules.h" />
+    <ClInclude Include="..\namespaces.h" />
+    <ClInclude Include="..\neural_network.h" />
+    <ClInclude Include="..\sensors.h" />
+    <ClInclude Include="..\signal_processing.h" />
+    <ClInclude Include="..\timing.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1B593630-4838-44A8-B504-3388ED47376A}</ProjectGuid>
@@ -64,7 +84,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>C:\Users\Adriano\Documents\Leonardo Jose\RobRehabSystem\src\control;C:\Users\Adriano\Documents\Leonardo Jose\RobRehabSystem\src\utils;C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source;C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source\OpenSim;C:\Program Files %28x86%29\Simbody-3.3.1\include;C:\Program Files %28x86%29\Simbody-3.3.1\include\simbody;C:\Program Files %28x86%29\Simbody-3.3.1\include\SimTKcommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source;C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source\OpenSim;C:\Program Files %28x86%29\Simbody-3.3.1\include;C:\Program Files %28x86%29\Simbody-3.3.1\include\simbody;C:\Program Files %28x86%29\Simbody-3.3.1\include\SimTKcommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

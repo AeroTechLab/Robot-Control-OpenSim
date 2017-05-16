@@ -17,3 +17,15 @@ OpenSim-Win32/OpenSimModel.lib
 *.sdf
 build/*
 *.kate-swp
+*.txt
+*.metagen
+*.exe
+*.asm
+*.filters
+NN/Project1/Project1.vcxproj
+*.db
+NN/NNtorque.sln
+NN/mlp_main.cpp
+NN/mlp_train.cpp
+NN/mlp_run.cpp
+NN/mlp_main.h
