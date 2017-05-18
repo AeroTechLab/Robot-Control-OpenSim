@@ -288,8 +288,8 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
   SimTK::Vector forcesList = controller->idSolver->solve( controller->state, accelerationsList );
   
   SimTK::Vector emgSample( controller->emgSensorsList.size() );
-  SimTK::Vector positionsSample( EMGOptimizerSystem::POSITION_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
-  SimTK::Vector forcesSample( EMGOptimizerSystem::FORCE_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
+  SimTK::Vector positionSample( EMGOptimizerSystem::POSITION_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
+  SimTK::Vector forceSample( EMGOptimizerSystem::FORCE_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
   
   if( controller->currentControlState == ROBOT_PREPROCESSING )
   {

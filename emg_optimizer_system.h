@@ -12,16 +12,16 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
     ~EMGOptimizerSystem();
  
     SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector&, SimTK::Vector& );
-    bool StoreSample( SimTK::Vector& );
-    void ResetSampleStorage();
+    bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
+    void ResetSamplesStorage();
     
-    static const int JOINT_VARIABLES_NUMBER;
+    static const int POSITION_VARIABLES_NUMBER, FORCE_VARIABLES_NUMBER;
     
   private:
     SimTK::State internalState;
     OpenSim::Model& internalModel;
-    SimTK::Array_<SimTK::Vector> samplesList;
+    SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, forceSamplesList;
     int maxSamplesCount;
-}
+};
 
 #endif // EMG_OPTIMIZER_SYSTEM_H

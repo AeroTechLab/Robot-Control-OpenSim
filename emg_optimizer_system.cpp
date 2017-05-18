@@ -1,6 +1,7 @@
 #include "emg_optimizer_system.h"
 
-int EMGOptimizerSystem::JOINT_VARIABLES_NUMBER = 5;
+int EMGOptimizerSystem::POSITION_VARIABLES_NUMBER = 3;
+int EMGOptimizerSystem::FORCE_VARIABLES_NUMBER = 2;
 
 EMGOptimizerSystem::EMGOptimizerSystem( int parametersNumber, int samplesNumber, SimTK::State& state, OpenSim::Model& model ) 
 : OptimizerSystem( parametersNumber ), internalState( state ), internalModel( model )
@@ -10,7 +11,7 @@ EMGOptimizerSystem::EMGOptimizerSystem( int parametersNumber, int samplesNumber,
 
 EMGOptimizerSystem::~EMGOptimizerSystem()
 {
-  samplesList.clear();
+  ResetSamplesStorage();
 }
 
 int EMGOptimizerSystem::objectiveFunc( SimTK::Vector& parameters, const bool new_coefficients, SimTK::Real& f ) const
@@ -18,21 +19,26 @@ int EMGOptimizerSystem::objectiveFunc( SimTK::Vector& parameters, const bool new
   return 0;
 }
 
-void EMGOptimizerSystem::CalculateTorques( SimTK::Vector& inputs, SimTK::Vector& outputs )
+SimTK::Vector EMGOptimizerSystem::CalculateTorques( SimTK::State& state, SimTK::Vector& emgInput, SimTK::Vector& positionsInput )
 {
+  SimtK::Vector forceOutputs( FORCE_VARIABLES_NUMBER /**jointsNumber*/ );
   
 }
 
-bool EMGOptimizerSystem::StoreSample( SimTK::Vector& sample )
+bool EMGOptimizerSystem::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positionSample, SimTK::Vector& forceSample )
 {
-  if( samplesList.size() >= maxSamplesCount ) return false;
+  if( emgSamplesList.size() >= maxSamplesCount ) return false;
   
-  samplesList.push_back( sample );
+  emgSamplesList.push_back( emgSample );
+  positionSamplesList.push_back( positionSample );
+  forceSamplesList.push_back( forceSample );
   
   return true;
 }
 
-void EMGOptimizerSystem::ResetSampleStorage()
+void EMGOptimizerSystem::ResetSamplesStorage()
 {
-  samplesList.clear();
+  emgSamplesList.clear();
+  positionSamplesList.clear();
+  forceSamplesList.clear();
 }
