@@ -83,7 +83,7 @@ RobotController InitController( const char* data )
   {
     // Create an OpenSim model from XML (.osim) file
     std::cout << "OSim: trying to load model file " << data << std::endl; newModel->osimModel = new OpenSim::Model( std::string( "config/robots/" ) + std::string( data ) + ".osim" );
-    
+    newController->osimModel->finalizeFromProperties();
     newModel->osimModel->printBasicInfo( std::cout );
     
     // Initialize the system (make copy)

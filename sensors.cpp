@@ -21,6 +21,7 @@
 
 
 #include <math.h>
+#include <string.h>
 
 #include "signal_io_interface.h"
 #include "curve_interpolation.h"

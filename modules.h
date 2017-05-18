@@ -33,7 +33,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#if __STDC_VERSION__ >= 199901L
+#if __STDC_VERSION__ >= 199901L || __cplusplus
 #include <stdbool.h>
 #else
 #define false   0

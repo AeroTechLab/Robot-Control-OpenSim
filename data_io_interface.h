@@ -47,9 +47,9 @@ typedef void* DataHandle;                   ///< Opaque reference to internal da
         INIT_FUNCTION( void, Interface, UnloadData, DataHandle ) \
         INIT_FUNCTION( char*, Interface, GetDataString, DataHandle ) \
         INIT_FUNCTION( DataHandle, Interface, GetSubData, DataHandle, const char*, ... ) \
-        INIT_FUNCTION( double, Interface, GetNumericValue, DataHandle, double, const char*, ... ) \
-        INIT_FUNCTION( char*, Interface, GetStringValue, DataHandle, char*, const char*, ... ) \
-        INIT_FUNCTION( bool, Interface, GetBooleanValue, DataHandle, bool, const char*, ... ) \
+        INIT_FUNCTION( double, Interface, GetNumericValue, DataHandle, const double, const char*, ... ) \
+        INIT_FUNCTION( char*, Interface, GetStringValue, DataHandle, const char*, const char*, ... ) \
+        INIT_FUNCTION( bool, Interface, GetBooleanValue, DataHandle, const bool, const char*, ... ) \
         INIT_FUNCTION( size_t, Interface, GetListSize, DataHandle, const char*, ... ) \
         INIT_FUNCTION( DataHandle, Interface, AddList, DataHandle, const char* ) \
         INIT_FUNCTION( DataHandle, Interface, AddLevel, DataHandle, const char* ) \
