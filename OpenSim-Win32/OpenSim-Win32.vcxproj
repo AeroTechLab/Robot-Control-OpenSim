@@ -14,6 +14,7 @@
     <ClCompile Include="..\curve_interpolation.cpp" />
     <ClCompile Include="..\data_io.cpp" />
     <ClCompile Include="..\data_logging.cpp" />
+    <ClCompile Include="..\emg_optimizer_system.cpp" />
     <ClCompile Include="..\neural_network.cpp" />
     <ClCompile Include="..\open_sim_model-legacy.cpp" />
     <ClCompile Include="..\sensors.cpp" />
@@ -25,6 +26,7 @@
     <ClInclude Include="..\data_io.h" />
     <ClInclude Include="..\data_io_interface.h" />
     <ClInclude Include="..\data_logging.h" />
+    <ClInclude Include="..\emg_optimizer_system.h" />
     <ClInclude Include="..\robot_control_interface.h" />
     <ClInclude Include="..\modules.h" />
     <ClInclude Include="..\namespaces.h" />

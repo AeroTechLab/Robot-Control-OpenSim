@@ -33,12 +33,14 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#if __STDC_VERSION__ >= 199901L || __cplusplus
+#ifndef __cplusplus
+#if __STDC_VERSION__ >= 199901L || __cplusplus >= 201103L
 #include <stdbool.h>
 #else
 #define false   0
 #define true    1
 #define bool char
+#endif
 #endif
 
 #ifdef WIN32

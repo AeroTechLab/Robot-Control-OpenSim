@@ -39,6 +39,9 @@
     <ClCompile Include="..\open_sim_model-legacy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\emg_optimizer_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\neural_network.h">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\curve_interpolation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\emg_optimizer_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

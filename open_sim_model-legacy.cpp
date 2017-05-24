@@ -26,7 +26,6 @@ typedef struct _ControlData
   SimTK::Array_<char*> axisNamesList;
   SimTK::Array_<bool> dofsChangedList;
   enum RobotState currentControlState;
-  size_t samplesCount;
   SimTK::Array_<Sensor> emgSensorsList;
   EMGOptimizerSystem* emgProcessor;
 }
@@ -82,15 +81,10 @@ RobotController InitController( const char* data )
     }
     std::cout << "OSim: found " << newController->actuatorsList.getSize() << " joint actuators" << std::endl;
     
-    OpenSim::ForceSet &forceSet = newController->osimModel->updForceSet();
-    for( int forceIndex = 0; forceIndex < forceSet.getSize(); forceIndex++ )
-      forceSet[ forceIndex ].setDisabled( newController->state, true ); // setAppliesForce -> false
-      
-    newController->currentControlState = ROBOT_PASSIVE;
-    newController->samplesCount = 0;
+    SetControlState( newController, ROBOT_PASSIVE );
     
-	emgProcessor = new EMGOptimizerSystem( 5 * muscleSet.getSize(), 1000, localState, *(newController->osimModel) );
-	emgProcessor->setParameterLimits( SimTK::Vector( 5 * muscleSet.getSize(), 0.8 ), SimTK::Vector( 5 * muscleSet.getSize(), 1.2 ) ); 
+	newController->emgProcessor = new EMGOptimizerSystem( 5 * muscleSet.getSize(), 1000, localState, *(newController->osimModel) );
+	newController->emgProcessor->setParameterLimits( SimTK::Vector( 5 * muscleSet.getSize(), 0.8 ), SimTK::Vector( 5 * muscleSet.getSize(), 1.2 ) ); 
 
 	std::cout << "OSim: generated coordinates size: " << newController->jointNamesList.size() << std::endl;
     newController->idSolver = new OpenSim::InverseDynamicsSolver( *(newController->osimModel) );
@@ -237,11 +231,11 @@ void SetControlState( RobotController ref_controller, enum RobotState newControl
   {
 	if( newControlState == ROBOT_OPERATION )
 	{
-	  if( controller->currentControlState == ROBOT_PREPROCESSING && controller->samplesCount > 0 )
+	  if( controller->currentControlState == ROBOT_PREPROCESSING )
 	  {
 	    std::cout << "starting optimization" << std::endl;
 		SimTK::Vector controls( 5 * controller->osimModel->getMuscles().getSize(), 1.0 );
-		SimTK::Optimizer optimizer( emgProcessor, SimTK::LBFGSB );
+		SimTK::Optimizer optimizer( *(controller->emgProcessor), SimTK::LBFGSB );
 		optimizer.setConvergenceTolerance( 0.05 );
 		optimizer.useNumericalGradient( true );
 		optimizer.setMaxIterations( 1000 );
@@ -250,7 +244,7 @@ void SetControlState( RobotController ref_controller, enum RobotState newControl
 
 		OpenSim::ForceSet &forceSet = controller->osimModel->updForceSet();
 		for( int forceIndex = 0; forceIndex < forceSet.getSize(); forceIndex++ )
-		  forceSet[ forceIndex ].setDisabled( controller->state, true ); // setAppliesForce -> false
+		  forceSet[ forceIndex ].setDisabled( controller->state, false ); // setAppliesForce -> true
 	  }
 	}
   }
@@ -266,7 +260,11 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
   if( RobotController == NULL ) return;
   
   ControlData* controller = (ControlData*) RobotController;
-  
+
+  SimTK::Vector emgInputs( controller->emgSensorsList.size() );
+  for( size_t muscleIndex = 0; muscleIndex < controller->emgSensorsList.size(); muscleIndex++ )
+	  emgInputs[ muscleIndex ] = Sensors.Update( controller->emgSensorsList[ muscleIndex ], NULL );
+  SimTK::Vector positionInputs( EMGOptimizerSystem::POSITION_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
   SimTK::Vector accelerationsList( controller->actuatorsList.getSize(), 0.0 );
   for( int jointIndex = 0; jointIndex < controller->actuatorsList.getSize(); jointIndex++ )
   {
@@ -285,16 +283,20 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
   controller->osimModel->getMultibodySystem().realize( controller->state, SimTK::Stage::Velocity );
   controller->osimModel->getMultibodySystem().realize( controller->state, SimTK::Stage::Acceleration );
   
-  SimTK::Vector forcesList = controller->idSolver->solve( controller->state, accelerationsList );
+  SimTK::Vector idForcesList = controller->idSolver->solve( controller->state, accelerationsList );
   
-  SimTK::Vector emgSample( controller->emgSensorsList.size() );
-  SimTK::Vector positionSample( EMGOptimizerSystem::POSITION_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
-  SimTK::Vector forceSample( EMGOptimizerSystem::FORCE_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
-  
-  if( controller->currentControlState == ROBOT_PREPROCESSING )
+  SimTK::Vector forceOutputs( EMGOptimizerSystem::FORCE_VARIABLES_NUMBER * controller->actuatorsList.getSize() );
+  for( int jointIndex = 0; jointIndex < controller->actuatorsList.getSize(); jointIndex++ )
   {
-
+	  forceOutputs[ jointIndex * EMGOptimizerSystem::FORCE_VARIABLES_NUMBER ] = idForcesList[ jointIndex ];
+	  double positionError = ( jointSetpointsList[ jointIndex ]->position - jointMeasuresList[ jointIndex ]->position ) / idForcesList[ jointIndex ];
+	  forceOutputs[ jointIndex * EMGOptimizerSystem::FORCE_VARIABLES_NUMBER + 1 ] = positionError / idForcesList[ jointIndex ];
   }
+
+  if( controller->currentControlState == ROBOT_PREPROCESSING )
+	  controller->emgProcessor->StoreSamples( emgInputs, positionInputs, forceOutputs );
+  else if( controller->currentControlState == ROBOT_OPERATION )
+	  controller->emgProcessor->CalculateTorques( controller->state, emgInputs, positionInputs, forceOutputs );
   
   for( int axisIndex = 0; axisIndex < controller->actuatorsList.getSize(); axisIndex++ )
   {
@@ -302,7 +304,8 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
     axisMeasuresList[ axisIndex ]->position = axisCoordinate->getValue( controller->state );
     axisMeasuresList[ axisIndex ]->velocity = axisCoordinate->getSpeedValue( controller->state );
     axisMeasuresList[ axisIndex ]->acceleration = axisCoordinate->getAccelerationValue( controller->state );
-    axisMeasuresList[ axisIndex ]->force = forcesList[ axisIndex ];
+    axisMeasuresList[ axisIndex ]->force = forceOutputs[ axisIndex * EMGOptimizerSystem::FORCE_VARIABLES_NUMBER ];
+	axisMeasuresList[ axisIndex ]->stiffness = forceOutputs[ axisIndex * EMGOptimizerSystem::FORCE_VARIABLES_NUMBER + 1 ];
   }
   
   for( int jointIndex = 0; jointIndex < controller->actuatorsList.getSize(); jointIndex++ )
@@ -311,9 +314,7 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
     jointSetpointsList[ jointIndex ]->velocity = axisSetpointsList[ jointIndex ]->velocity;
     jointSetpointsList[ jointIndex ]->acceleration = axisSetpointsList[ jointIndex ]->acceleration;
     jointSetpointsList[ jointIndex ]->force = axisSetpointsList[ jointIndex ]->force;
-  }
-  
-  
+  }  
   
   //std::cout << "marker position: " << markerPosition << std::endl;
   std::cout << "joint positions: " << controller->actuatorsList[ 0 ].getCoordinate()->getValue( controller->state ) << ", " << controller->actuatorsList[ 1 ].getCoordinate()->getValue( controller->state ) << std::endl;

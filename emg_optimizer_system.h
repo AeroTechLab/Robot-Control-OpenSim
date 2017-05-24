@@ -11,17 +11,20 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
     EMGOptimizerSystem( int, int, SimTK::State&, OpenSim::Model& );
     ~EMGOptimizerSystem();
  
-    SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector&, SimTK::Vector& );
+    void CalculateTorques( SimTK::State&, SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
     bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
     void ResetSamplesStorage();
     
+	virtual int EMGOptimizerSystem::objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
+
     static const int POSITION_VARIABLES_NUMBER, FORCE_VARIABLES_NUMBER;
     
   private:
     SimTK::State internalState;
     OpenSim::Model& internalModel;
+	OpenSim::MomentArmSolver momentArmSolver;
     SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, forceSamplesList;
-    int maxSamplesCount;
+    const size_t MAX_SAMPLES_COUNT;
 };
 
 #endif // EMG_OPTIMIZER_SYSTEM_H

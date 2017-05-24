@@ -53,7 +53,8 @@
 /// Automates declaration of exposed and namespaced function pointer
 #define DECLARE_NAMESPACE_FUNC_REF( rtype, Namespace, func, ... ) rtype (*func)( __VA_ARGS__ );        
 /// Automates definition of namespaced method (internal function address attribuition to exposed function pointer)
-#if __STDC_VERSION__ >= 199901L || __cplusplus
+#ifndef __cplusplus
+#if __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #define DEFINE_NAMESPACE_FUNC_REF( rtype, Namespace, func, ... ) .func = Namespace##_##func,
 #else
@@ -61,6 +62,7 @@
 #define false   0
 #define true    1
 #define bool char
+#endif
 #endif
 
 
