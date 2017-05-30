@@ -3,27 +3,32 @@
 
 #include <OpenSim/OpenSim.h>
 #include <OpenSim/Simulation/Model/Model.h>
+#include <OpenSim/Simulation/InverseDynamicsSolver.h>
+
+typedef OpenSim::Set<OpenSim::CoordinateActuator> ActuatorSet;
+
+enum class EMGPositionVariable : int { POSITION, VELOCITY, ACCELERATION, SETPOINT, VARS_NUMBER };
+enum class EMGTorqueVariable : int { TORQUE, STIFFNESS, VARS_NUMBER };
+enum class EMGOptimizationVariable : int { MAX_FORCE, FIBER_LENGTH, SLACK_LENGTH, PENNATION_ANGLE, ACTIVATION_FACTOR, VARS_NUMBER };
 
 class EMGOptimizerSystem : public SimTK::OptimizerSystem
 {
   public:
     /* Constructor class. Parameters accessed in objectiveFunc() class */
-    EMGOptimizerSystem( int, int, SimTK::State&, OpenSim::Model& );
+    EMGOptimizerSystem( int, int, SimTK::State&, OpenSim::Model&, ActuatorSet& );
     ~EMGOptimizerSystem();
  
-    void CalculateTorques( SimTK::State&, SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
+    SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector& );
     bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
     void ResetSamplesStorage();
-    
-	virtual int EMGOptimizerSystem::objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
-
-    static const int POSITION_VARIABLES_NUMBER, FORCE_VARIABLES_NUMBER;
     
   private:
     SimTK::State internalState;
     OpenSim::Model& internalModel;
-	OpenSim::MomentArmSolver momentArmSolver;
-    SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, forceSamplesList;
+    ActuatorSet& actuatorsSet;
+    OpenSim::InverseDynamicsSolver idSolver;
+    OpenSim::MomentArmSolver momentArmSolver;
+    SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, torqueSamplesList;
     const size_t MAX_SAMPLES_COUNT;
 };
 
