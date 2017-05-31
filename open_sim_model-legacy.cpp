@@ -257,6 +257,8 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
   
   ControlData* controller = (ControlData*) RobotController;
 
+  controller->state.updTime() = 0.0;
+  
   SimTK::Vector emgInputs( controller->emgSensorsList.size() );
   for( size_t muscleIndex = 0; muscleIndex < controller->emgSensorsList.size(); muscleIndex++ )
     emgInputs[ muscleIndex ] = Sensors.Update( controller->emgSensorsList[ muscleIndex ], NULL );
