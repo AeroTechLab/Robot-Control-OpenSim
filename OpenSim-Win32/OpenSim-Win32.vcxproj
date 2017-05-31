@@ -88,6 +88,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source;C:\Users\Adriano\Documents\Leonardo Jose\OpenSim32-source\OpenSim;C:\Program Files %28x86%29\Simbody-3.3.1\include;C:\Program Files %28x86%29\Simbody-3.3.1\include\simbody;C:\Program Files %28x86%29\Simbody-3.3.1\include\SimTKcommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/DSIGNAL_IO_MODULES_PATH="./plugins/signal_io" /DDATA_IO_MODULES_PATH="./plugins/data_io" /DACTUATOR_CONTROL_MODULES_PATH="./plugins/actuator_control" /DROBOT_CONTROL_MODULES_PATH="./plugins/robot_control" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

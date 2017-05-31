@@ -50,9 +50,6 @@
     <ClInclude Include="..\data_logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\modules.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\namespaces.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -78,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\emg_optimizer_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\modules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

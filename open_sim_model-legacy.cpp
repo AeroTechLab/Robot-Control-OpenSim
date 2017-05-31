@@ -47,7 +47,7 @@ RobotController InitController( const char* data )
     
     newController->osimModel->setGravity( SimTK::Vec3( 0.0, -9.80665, 0.0 ) );
     
-    newController->osimModel->setUseVisualizer( true ); // not for RT
+    //newController->osimModel->setUseVisualizer( true ); // not for RT
     
     // Initialize the system (make copy)
     std::cout << "OSim: initialize state" << std::endl; SimTK::State& localState = newController->osimModel->initSystem();
@@ -64,22 +64,29 @@ RobotController InitController( const char* data )
         //OpenSim::ActivationFiberLengthMuscle* muscle = dynamic_cast<OpenSim::ActivationFiberLengthMuscle*>(&(actuatorSet[ actuatorIndex ]));
         //if( muscle ) muscle->setDefaultActivation( 0.5 );
         std::string sensorConfigurationPath = std::string( "sensors/emg/" ) + actuatorName;
-        DataHandle sensorConfiguration = DataIO.GetDataHandler()->LoadStringData( sensorConfigurationPath.c_str() );
+        DataHandle sensorConfiguration = DataIO.GetDataHandler()->LoadFileData( sensorConfigurationPath.c_str() );
         newController->emgSensorsList.push_back( Sensors.Init( sensorConfiguration ) );
         DataIO.GetDataHandler()->UnloadData( sensorConfiguration );
       }
 	  else
       {
         OpenSim::CoordinateActuator* actuator = dynamic_cast<OpenSim::CoordinateActuator*>(&(actuatorSet[ actuatorIndex ]));
-        newController->actuatorsList.adoptAndAppend( actuator );
-        newController->jointNamesList.push_back( (char*) actuator->getCoordinate()->getName().c_str() );
-        newController->axisNamesList.push_back( (char*) actuator->getCoordinate()->getName().c_str() );
-        newController->dofsChangedList.push_back( true );
+		std::cout << "OSim: robotic actuator pointer: " << actuator << std::endl;
+		if( actuator != NULL )
+		{
+		  std::cout << "OSim: found robotic actuator: " << actuator->getName() << std::endl;
+		  //actuator->setCoordinate( &(newController->osimModel->updCoordinateSet().get( "knee_angle_r" )) );
+		  std::cout << "OSim: actuator joint: " << actuator->getCoordinate()->getName() << std::endl;
+          newController->actuatorsList.adoptAndAppend( actuator );
+          newController->jointNamesList.push_back( (char*) actuator->getCoordinate()->getName().c_str() );
+          newController->axisNamesList.push_back( (char*) actuator->getCoordinate()->getName().c_str() );
+          newController->dofsChangedList.push_back( true );
+		}
       }
     }
     std::cout << "OSim: found " << newController->actuatorsList.getSize() << " joint actuators" << std::endl;
     
-    int parametersNumber = (int) EMGOptimizationVariable::VARS_NUMBER;
+    int parametersNumber = EMG_OPT_VARS_NUMBER;
     newController->emgProcessor = new EMGOptimizerSystem( parametersNumber * muscleSet.getSize(), 1000, localState, *(newController->osimModel), newController->actuatorsList );
     newController->emgProcessor->setParameterLimits( SimTK::Vector( parametersNumber * muscleSet.getSize(), 0.8 ), SimTK::Vector( parametersNumber * muscleSet.getSize(), 1.2 ) ); 
     
@@ -257,26 +264,26 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
   
   ControlData* controller = (ControlData*) RobotController;
 
-  controller->state.updTime() = 0.0;
+  /*controller->state.updTime() = 0.0;
   
   SimTK::Vector emgInputs( controller->emgSensorsList.size() );
   for( size_t muscleIndex = 0; muscleIndex < controller->emgSensorsList.size(); muscleIndex++ )
     emgInputs[ muscleIndex ] = Sensors.Update( controller->emgSensorsList[ muscleIndex ], NULL );
-  SimTK::Vector positionInputs( (int) EMGPositionVariable::VARS_NUMBER * controller->actuatorsList.getSize() );
-  SimTK::Vector torqueInputs( (int) EMGTorqueVariable::VARS_NUMBER * controller->actuatorsList.getSize() );
+  SimTK::Vector positionInputs( EMG_POS_VARS_NUMBER * controller->actuatorsList.getSize() );
+  SimTK::Vector torqueInputs( EMG_FORCE_VARS_NUMBER * controller->actuatorsList.getSize() );
   for( int jointIndex = 0; jointIndex < controller->actuatorsList.getSize(); jointIndex++ )
   {
     OpenSim::Coordinate* jointCoordinate = controller->actuatorsList[ jointIndex ].getCoordinate();
     jointCoordinate->setValue( controller->state, jointMeasuresList[ jointIndex ]->position );
     jointCoordinate->setSpeedValue( controller->state, jointMeasuresList[ jointIndex ]->velocity );
     controller->actuatorsList[ jointIndex ].setForce( controller->state, jointMeasuresList[ jointIndex ]->force );
-    int positionInputsIndex = jointIndex * (int) EMGPositionVariable::VARS_NUMBER;
-    positionInputs[ positionInputsIndex + (int) EMGPositionVariable::POSITION ] = jointMeasuresList[ jointIndex ]->position;
-    positionInputs[ positionInputsIndex + (int) EMGPositionVariable::VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
-    positionInputs[ positionInputsIndex + (int) EMGPositionVariable::ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
-    positionInputs[ positionInputsIndex + (int) EMGPositionVariable::SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
-    int torqueOutputsIndex = jointIndex * (int) EMGTorqueVariable::VARS_NUMBER;
-    torqueInputs[ torqueOutputsIndex + (int) EMGTorqueVariable::TORQUE ] = jointMeasuresList[ jointIndex ]->force;
+    int positionInputsIndex = jointIndex * EMG_POS_VARS_NUMBER;
+    positionInputs[ positionInputsIndex + EMG_ANGLE ] = jointMeasuresList[ jointIndex ]->position;
+    positionInputs[ positionInputsIndex + EMG_VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
+    positionInputs[ positionInputsIndex + EMG_ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
+    positionInputs[ positionInputsIndex + EMG_SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
+    int torqueOutputsIndex = jointIndex * EMG_FORCE_VARS_NUMBER;
+    torqueInputs[ torqueOutputsIndex + EMG_TORQUE ] = jointMeasuresList[ jointIndex ]->force;
   }
   
   if( controller->currentControlState == ROBOT_PREPROCESSING )
@@ -299,9 +306,9 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
     axisMeasuresList[ axisIndex ]->position = axisCoordinate->getValue( controller->state );
     axisMeasuresList[ axisIndex ]->velocity = axisCoordinate->getSpeedValue( controller->state );
     axisMeasuresList[ axisIndex ]->acceleration = axisCoordinate->getAccelerationValue( controller->state );
-    int torqueOutputsIndex = axisIndex * (int) EMGTorqueVariable::VARS_NUMBER;
-    axisMeasuresList[ axisIndex ]->force = torqueOutputs[ torqueOutputsIndex + (int) EMGTorqueVariable::TORQUE ];
-    axisMeasuresList[ axisIndex ]->stiffness = torqueOutputs[ torqueOutputsIndex + (int) EMGTorqueVariable::STIFFNESS ];
+    int torqueOutputsIndex = axisIndex * EMG_FORCE_VARS_NUMBER;
+    axisMeasuresList[ axisIndex ]->force = torqueOutputs[ torqueOutputsIndex + EMG_TORQUE ];
+    axisMeasuresList[ axisIndex ]->stiffness = torqueOutputs[ torqueOutputsIndex + EMG_STIFFNESS ];
   }
   
   for( int jointIndex = 0; jointIndex < controller->actuatorsList.getSize(); jointIndex++ )
@@ -310,8 +317,7 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
     jointSetpointsList[ jointIndex ]->velocity = axisSetpointsList[ jointIndex ]->velocity;
     jointSetpointsList[ jointIndex ]->acceleration = axisSetpointsList[ jointIndex ]->acceleration;
     jointSetpointsList[ jointIndex ]->force = axisSetpointsList[ jointIndex ]->force;
-  }  
-  
-  //std::cout << "marker position: " << markerPosition << std::endl;
-  std::cout << "joint positions: " << controller->actuatorsList[ 0 ].getCoordinate()->getValue( controller->state ) << ", " << controller->actuatorsList[ 1 ].getCoordinate()->getValue( controller->state ) << std::endl;
+  }*/  
+
+  //std::cout << "joint positions: " << controller->actuatorsList[ 0 ].getCoordinate()->getValue( controller->state ) << ", " << controller->actuatorsList[ 1 ].getCoordinate()->getValue( controller->state ) << std::endl;
 }

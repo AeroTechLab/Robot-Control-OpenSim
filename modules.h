@@ -34,7 +34,7 @@
 #include <stdlib.h>
 
 #ifndef __cplusplus
-#if __STDC_VERSION__ >= 199901L || __cplusplus >= 201103L
+#if __STDC_VERSION__ >= 199901L
 #include <stdbool.h>
 #else
 #define false   0

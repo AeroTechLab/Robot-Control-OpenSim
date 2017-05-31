@@ -55,9 +55,9 @@ void SetBaseFilePath( const char* basePath ) { return (void) 0; }
 void UnloadData( DataHandle data ) { return (void) 0; }
 char* GetDataString( DataHandle data ) { return NULL; }
 DataHandle GetSubData( DataHandle data, const char* pathFormat, ... ) { return NULL; }
-char* GetStringValue( DataHandle data, char* defaultValue, const char* pathFormat, ... ) { return defaultValue; }
-double GetNumericValue( DataHandle data, double defaultValue, const char* pathFormat, ... ) { return defaultValue; }
-bool GetBooleanValue( DataHandle data, bool defaultValue, const char* pathFormat, ... ) { return defaultValue; }
+char* GetStringValue( DataHandle data, const char* defaultValue, const char* pathFormat, ... ) { return (char*) defaultValue; }
+double GetNumericValue( DataHandle data, const double defaultValue, const char* pathFormat, ... ) { return defaultValue; }
+bool GetBooleanValue( DataHandle data, const bool defaultValue, const char* pathFormat, ... ) { return defaultValue; }
 size_t GetListSize( DataHandle data, const char* pathFormat, ... ) { return 0; }
 DataHandle AddList( DataHandle data, const char* key ) { return NULL; }
 DataHandle AddLevel( DataHandle data, const char* key ) { return NULL; }

@@ -7,9 +7,9 @@
 
 typedef OpenSim::Set<OpenSim::CoordinateActuator> ActuatorSet;
 
-enum class EMGPositionVariable : int { POSITION, VELOCITY, ACCELERATION, SETPOINT, VARS_NUMBER };
-enum class EMGTorqueVariable : int { TORQUE, STIFFNESS, VARS_NUMBER };
-enum class EMGOptimizationVariable : int { MAX_FORCE, FIBER_LENGTH, SLACK_LENGTH, PENNATION_ANGLE, ACTIVATION_FACTOR, VARS_NUMBER };
+enum { EMG_ANGLE, EMG_VELOCITY, EMG_ACCELERATION, EMG_SETPOINT, EMG_POS_VARS_NUMBER };
+enum { EMG_TORQUE, EMG_STIFFNESS, EMG_FORCE_VARS_NUMBER };
+enum { EMG_MAX_FORCE, EMG_FIBER_LENGTH, EMG_SLACK_LENGTH, EMG_PENNATION_ANGLE, EMG_ACTIVATION_FACTOR, EMG_OPT_VARS_NUMBER };
 
 class EMGOptimizerSystem : public SimTK::OptimizerSystem
 {
@@ -18,7 +18,9 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
     EMGOptimizerSystem( int, int, SimTK::State&, OpenSim::Model&, ActuatorSet& );
     ~EMGOptimizerSystem();
  
-    SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector& );
+	int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
+
+    SimTK::Vector CalculateTorques( SimTK::State, SimTK::Vector ) const;
     bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
     void ResetSamplesStorage();
     
@@ -26,8 +28,8 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
     SimTK::State internalState;
     OpenSim::Model& internalModel;
     ActuatorSet& actuatorsSet;
-    OpenSim::InverseDynamicsSolver idSolver;
-    OpenSim::MomentArmSolver momentArmSolver;
+    const OpenSim::InverseDynamicsSolver idSolver;
+    const OpenSim::MomentArmSolver momentArmSolver;
     SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, torqueSamplesList;
     const size_t MAX_SAMPLES_COUNT;
 };
