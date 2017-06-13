@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "robot_control_interface.h"
 
@@ -11,20 +12,25 @@
 #include "data_io.h"
 #include "data_logging.h"
 
-#include "emg_optimizer_system.h"
+#include "multi_layer_perceptron.h"
+
+enum { EMG_ANGLE, EMG_VELOCITY, EMG_TORQUE_EXT, EMG_INPUTS_NUMBER };
+enum { EMG_TORQUE_INT, EMG_STIFFNESS, EMG_OUTPUTS_NUMBER };
+
+const size_t MAX_SAMPLES_COUNT = 1000;
 
 typedef struct _ControlData
 {
   OpenSim::Model* osimModel;
-  //SimTK::Integrator* integrator;
-  //OpenSim::Manager* manager;
   SimTK::Array_<OpenSim::CoordinateActuator*> actuatorsList;
   SimTK::Array_<char*> jointNamesList;
   SimTK::Array_<char*> axisNamesList;
   SimTK::Array_<bool> dofsChangedList;
   enum RobotState currentControlState;
   SimTK::Array_<Sensor> emgSensorsList;
-  EMGOptimizerSystem* emgProcessor;
+  MLPerceptron emgProcessor;
+  std::vector<double*> inputSamplesTable;
+  std::vector<double*> outputSamplesTable;
 }
 ControlData;
 
@@ -78,15 +84,13 @@ RobotController InitController( const char* data )
       }
     }
     
-    int parametersNumber = EMG_OPT_VARS_NUMBER;
-    newController->emgProcessor = new EMGOptimizerSystem( *(newController->osimModel), newController->actuatorsList, 1000 );
+	size_t inputsNumber = newController->emgSensorsList.size() + EMG_INPUTS_NUMBER * newController->actuatorsList.size();
+	size_t outputsNumber = EMG_OUTPUTS_NUMBER * newController->actuatorsList.size();
+    newController->emgProcessor = MLPerceptrons.InitNetwork( inputsNumber, outputsNumber, 10 );
+	newController->inputSamplesTable.reserve( MAX_SAMPLES_COUNT );
+	newController->outputSamplesTable.reserve( MAX_SAMPLES_COUNT );
     
     SetControlState( newController, /*ROBOT_PASSIVE*/ROBOT_PREPROCESSING );
-    
-    // Create the integrator and manager for the simulation.
-    //newController->integrator = new SimTK::RungeKuttaMersonIntegrator( newController->osimModel->getMultibodySystem() );
-    //newController->integrator->setAccuracy( 1.0e-4 ); std::cout << "OSim: integrator created" << std::endl;
-    //newController->manager = new OpenSim::Manager( *(newController->osimModel), *(newController->integrator) ); 
     
     std::cout << "OSim: integration manager created" << std::endl;
   }
@@ -120,8 +124,6 @@ void EndController( RobotController ref_controller )
   
   ControlData* controller = (ControlData*) ref_controller;
   
-  //delete controller->integrator;
-  //delete controller->manager;
   delete controller->osimModel;
   
   controller->jointNamesList.clear();
@@ -131,6 +133,11 @@ void EndController( RobotController ref_controller )
   for( size_t muscleIndex = 0; muscleIndex < controller->emgSensorsList.size(); muscleIndex++ )
     Sensors.End( controller->emgSensorsList[ muscleIndex ] );
   controller->emgSensorsList.clear();
+
+  controller->inputSamplesTable.clear();
+  controller->outputSamplesTable.clear();
+
+  MLPerceptrons.EndNetwork( controller->emgProcessor );
   
   delete controller;
 }
@@ -218,7 +225,10 @@ void SetControlState( RobotController ref_controller, enum RobotState newControl
   else if( newControlState == ROBOT_PREPROCESSING )
   {
 	std::cout << "reseting sampling count" << std::endl;
-	controller->emgProcessor->ResetSamplesStorage();
+	controller->inputSamplesTable.clear();
+    controller->outputSamplesTable.clear();
+	controller->inputSamplesTable.reserve( MAX_SAMPLES_COUNT );
+	controller->outputSamplesTable.reserve( MAX_SAMPLES_COUNT );
   }
   else 
   {
@@ -226,16 +236,9 @@ void SetControlState( RobotController ref_controller, enum RobotState newControl
 	{
 	  if( controller->currentControlState == ROBOT_PREPROCESSING )
 	  {
-	    std::cout << "starting optimization" << std::endl;
-		controller->emgProcessor->PreProcessSamples();
-		SimTK::Vector parametersList = controller->emgProcessor->GetInitialParameters();
-		SimTK::Optimizer optimizer( *(controller->emgProcessor), SimTK::LBFGSB );
-		optimizer.setConvergenceTolerance( 0.05 );
-		optimizer.useNumericalGradient( true );
-		optimizer.setMaxIterations( 1000 );
-		optimizer.setLimitedMemoryHistory( 500 );
-		SimTK::Real remainingError = optimizer.optimize( parametersList );
-		std::cout << "optimization ended with residual: " << remainingError << std::endl;
+	    std::cout << "starting training" << std::endl;
+		double remainingError = MLPerceptrons.Train( controller->emgProcessor, controller->inputSamplesTable.data(), controller->outputSamplesTable.data(), controller->inputSamplesTable.size() );
+		std::cout << "training ended with residual: " << remainingError << std::endl;
 
 		OpenSim::ForceSet &forceSet = controller->osimModel->updForceSet();
 		for( int forceIndex = 0; forceIndex < forceSet.getSize(); forceIndex++ )
@@ -262,31 +265,26 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
 
   state.updTime() = 0.0;
 
-  SimTK::Vector emgInputs( controller->emgSensorsList.size() );
-  for( size_t muscleIndex = 0; muscleIndex < controller->emgSensorsList.size(); muscleIndex++ )
-    emgInputs[ muscleIndex ] = Sensors.Update( controller->emgSensorsList[ muscleIndex ], NULL );
-  SimTK::Vector positionInputs( EMG_POS_VARS_NUMBER * controller->actuatorsList.size() );
-  SimTK::Vector torqueInputs( EMG_FORCE_VARS_NUMBER * controller->actuatorsList.size() );
+  double* processingInputs = new double[ controller->emgSensorsList.size() + EMG_INPUTS_NUMBER * controller->actuatorsList.size() ];
+  double* processingOutputs = new double[ EMG_OUTPUTS_NUMBER * controller->actuatorsList.size() ];
+  for( size_t inputIndex = 0; inputIndex < controller->emgSensorsList.size(); inputIndex++ )
+    processingInputs[ inputIndex ] = Sensors.Update( controller->emgSensorsList[ inputIndex ], NULL );
   for( size_t jointIndex = 0; jointIndex < controller->actuatorsList.size(); jointIndex++ )
   {
 	OpenSim::Coordinate* jointCoordinate = controller->actuatorsList[ jointIndex ]->getCoordinate();
     jointCoordinate->setValue( state, jointMeasuresList[ jointIndex ]->position );
     jointCoordinate->setSpeedValue( state, jointMeasuresList[ jointIndex ]->velocity );
     controller->actuatorsList[ jointIndex ]->setForce( state, jointMeasuresList[ jointIndex ]->force );
-    size_t positionInputsIndex = jointIndex * EMG_POS_VARS_NUMBER;
-    positionInputs[ positionInputsIndex + EMG_ANGLE ] = jointMeasuresList[ jointIndex ]->position;
-    positionInputs[ positionInputsIndex + EMG_VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
-    positionInputs[ positionInputsIndex + EMG_ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
-    positionInputs[ positionInputsIndex + EMG_SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
-    size_t torqueOutputsIndex = jointIndex * EMG_FORCE_VARS_NUMBER;
-    torqueInputs[ torqueOutputsIndex + EMG_TORQUE_EXT ] = jointMeasuresList[ jointIndex ]->force;
+    size_t inputIndex = controller->emgSensorsList.size() + jointIndex * EMG_INPUTS_NUMBER;
+    processingInputs[ inputIndex + EMG_ANGLE ] = jointMeasuresList[ jointIndex ]->position;
+    processingInputs[ inputIndex + EMG_VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
+	processingInputs[ inputIndex + EMG_TORQUE_EXT ] = jointMeasuresList[ jointIndex ]->force;
+    //processingInputs[ positionInputIndex + EMG_ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
+    //processingInputs[ positionInputIndex + EMG_SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
   }
   
-  if( controller->currentControlState == ROBOT_PREPROCESSING )
-    controller->emgProcessor->StoreSamples( emgInputs, positionInputs, torqueInputs );
-
-  //else if( controller->currentControlState == ROBOT_OPERATION )
-  SimTK::Vector torqueOutputs = controller->emgProcessor->CalculateTorques( state, emgInputs );
+  if( controller->currentControlState == ROBOT_OPERATION )
+	MLPerceptrons.ProcessInput( controller->emgProcessor, processingInputs, processingOutputs );
   
   //SimTK::RungeKuttaMersonIntegrator integrator ( controller->osimModel->getMultibodySystem() );
   //integrator.setAccuracy( 1.0e-6 );
@@ -317,6 +315,13 @@ void RunControlStep( RobotController RobotController, RobotVariables** jointMeas
   }
 
   if( passesCount++ > 100 && controller->currentControlState == ROBOT_PREPROCESSING ) SetControlState( controller, ROBOT_OPERATION );
+
+  if( controller->currentControlState == ROBOT_PREPROCESSING && controller->inputSamplesTable.size() < MAX_SAMPLES_COUNT )
+	controller->inputSamplesTable.push_back( processingInputs );
+  else
+	delete processingInputs;
+
+  delete processingOutputs;
 
   //std::cout << "joint 0 position: " << controller->actuatorsList[ 0 ]->getCoordinate()->getValue( state ) << std::endl;
 }

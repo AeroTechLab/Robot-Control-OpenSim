@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\neural_network.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sensors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,11 +39,14 @@
     <ClCompile Include="..\emg_optimizer_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\multi_layer_perceptron.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\open_sim_nn-legacy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\neural_network.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\data_logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -78,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\modules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\multi_layer_perceptron.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

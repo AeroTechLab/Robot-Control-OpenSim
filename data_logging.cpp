@@ -64,7 +64,7 @@ Log DataLogging_InitLog( const char* filePath, size_t dataPrecision )
   }
   
   newLog->dataPrecision = ( dataPrecision < DATA_LOG_MAX_PRECISION ) ? dataPrecision : DATA_LOG_MAX_PRECISION;
-  
+
   return newLog;
 }
 
@@ -104,7 +104,7 @@ void DataLogging_RegisterValues( Log log, size_t valuesNumber, ... )
   va_start( logValues, valuesNumber );
 
   for( size_t valueListIndex = 0; valueListIndex < valuesNumber; valueListIndex++ )
-    fprintf( log->file, "%.*lf\t", log->dataPrecision, va_arg( logValues, double ) );
+    fprintf( log->file, "\t%.*lf", log->dataPrecision, va_arg( logValues, double ) );
 
   va_end( logValues );
 }
@@ -114,7 +114,7 @@ void DataLogging_RegisterList( Log log, size_t valuesNumber, double* valuesList 
   if( log == NULL ) return;
 
   for( size_t valueListIndex = 0; valueListIndex < valuesNumber; valueListIndex++ )
-    fprintf( log->file, "%.*lf\t", log->dataPrecision, valuesList[ valueListIndex ] );
+    fprintf( log->file, "\t%.*lf", log->dataPrecision, valuesList[ valueListIndex ] );
 }
 
 void DataLogging_RegisterString( Log log, const char* formatString, ... )

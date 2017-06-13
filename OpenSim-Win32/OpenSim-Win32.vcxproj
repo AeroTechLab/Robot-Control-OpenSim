@@ -15,8 +15,9 @@
     <ClCompile Include="..\data_io.cpp" />
     <ClCompile Include="..\data_logging.cpp" />
     <ClCompile Include="..\emg_optimizer_system.cpp" />
-    <ClCompile Include="..\neural_network.cpp" />
+    <ClCompile Include="..\multi_layer_perceptron.cpp" />
     <ClCompile Include="..\open_sim_model-legacy.cpp" />
+    <ClCompile Include="..\open_sim_nn-legacy.cpp" />
     <ClCompile Include="..\sensors.cpp" />
     <ClCompile Include="..\signal_processing.cpp" />
     <ClCompile Include="..\timing_windows.cpp" />
@@ -30,7 +31,7 @@
     <ClInclude Include="..\robot_control_interface.h" />
     <ClInclude Include="..\modules.h" />
     <ClInclude Include="..\namespaces.h" />
-    <ClInclude Include="..\neural_network.h" />
+    <ClInclude Include="..\multi_layer_perceptron.h" />
     <ClInclude Include="..\sensors.h" />
     <ClInclude Include="..\signal_processing.h" />
     <ClInclude Include="..\timing.h" />
