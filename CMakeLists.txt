@@ -10,8 +10,7 @@ set( BUILD_LEGACY OFF CACHE BOOL "Build plug-in for OpenSim 3.x" )
 
 set( OPENSIM_HOME ${CMAKE_SOURCE_DIR}/OpenSim CACHE PATH "OpenSim installation path" )
 set( SIMBODY_HOME ${CMAKE_SOURCE_DIR}/simbody CACHE PATH "Simbody installation path" )
-set( CONTROL_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../Robot-Control-Library CACHE PATH "Robot Control Library base directory" )
-set( UTILS_LIBRARY_DIR ${CMAKE_SOURCE_DIR}/../Platform-Utils CACHE PATH "Platform Utils library base directory" )
+
 set( MODULES_DIR ${CONTROL_LIBRARY_DIR} CACHE PATH "Plug-in output directory" )
 
 if( BUILD_LEGACY )

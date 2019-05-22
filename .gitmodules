@@ -1,0 +1,3 @@
+[submodule "interface"]
+	path = interface
+	url = https://github.com/EESC-MKGroup/Robot-Control-Interface

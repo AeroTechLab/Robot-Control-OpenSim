@@ -4,8 +4,6 @@
 #include <OpenSim/OpenSim.h>
 #include <OpenSim/Simulation/Model/Model.h>
 
-#include "data_logging.h"
-
 typedef SimTK::Array_<OpenSim::CoordinateActuator*> ActuatorsList;
 
 enum { EMG_ANGLE, EMG_VELOCITY, EMG_ACCELERATION, EMG_SETPOINT, EMG_POS_VARS_NUMBER };
@@ -19,24 +17,24 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
     EMGOptimizerSystem( OpenSim::Model&, ActuatorsList&, int );
     ~EMGOptimizerSystem();
  
-	int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
+    int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
 
     SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector ) const;
     bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
-	void PreProcessSamples();
+    void PreProcessSamples();
     void ResetSamplesStorage();
 
-	SimTK::Vector GetInitialParameters();
+    SimTK::Vector GetInitialParameters();
     
   private:
     OpenSim::Model& internalModel;
     ActuatorsList& actuatorsList;
     OpenSim::MomentArmSolver momentArmSolver;
     SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, torqueSamplesList;
-	SimTK::Vector activationFactorsList;
+    SimTK::Vector activationFactorsList;
     const size_t MAX_SAMPLES_COUNT;
 
-	Log optimizationLog;
+    //Log optimizationLog;
 };
 
 #endif // EMG_OPTIMIZER_SYSTEM_H
