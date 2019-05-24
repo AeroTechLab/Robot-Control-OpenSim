@@ -6,9 +6,8 @@
 
 typedef SimTK::Array_<OpenSim::CoordinateActuator*> ActuatorsList;
 
-enum { EMG_ANGLE, EMG_VELOCITY, EMG_ACCELERATION, EMG_SETPOINT, EMG_POS_VARS_NUMBER };
+enum { EMG_POSITION, EMG_VELOCITY, EMG_ACCELERATION, EMG_SETPOINT, EMG_POS_VARS_NUMBER };
 enum { EMG_TORQUE_EXT, EMG_TORQUE_INT, EMG_STIFFNESS, EMG_FORCE_VARS_NUMBER };
-enum { EMG_MAX_FORCE, EMG_FIBER_LENGTH, EMG_SLACK_LENGTH, EMG_PENNATION_ANGLE, EMG_ACTIVATION_FACTOR, EMG_OPT_VARS_NUMBER };
 
 class EMGOptimizerSystem : public SimTK::OptimizerSystem
 {
@@ -21,7 +20,6 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
 
     SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector ) const;
     bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
-    void PreProcessSamples();
     void ResetSamplesStorage();
 
     SimTK::Vector GetInitialParameters();
@@ -29,7 +27,6 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
   private:
     OpenSim::Model& internalModel;
     ActuatorsList& actuatorsList;
-    OpenSim::MomentArmSolver momentArmSolver;
     SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, torqueSamplesList;
     SimTK::Vector activationFactorsList;
     const size_t MAX_SAMPLES_COUNT;
