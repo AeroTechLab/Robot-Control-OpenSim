@@ -92,8 +92,6 @@ bool InitController( const char* data )
 
 void EndController()
 {
-  //delete controller.integrator;
-  //delete controller.manager;
   delete controller.osimModel;
   
   controller.jointNamesList.clear();

@@ -13,18 +13,18 @@ set( SIMBODY_HOME ${CMAKE_SOURCE_DIR}/simbody CACHE PATH "Simbody installation p
 
 set( MODULES_DIR ${CONTROL_LIBRARY_DIR} CACHE PATH "Plug-in output directory" )
 
+add_library( OpenSimModel MODULE osim_model.cpp emg_optimizer_system.cpp )
+
 if( BUILD_LEGACY )
   find_package( Simbody 3.5 PATHS "${SIMBODY_HOME}" NO_MODULE NO_DEFAULT_PATH )
   include_directories( ${CMAKE_SOURCE_DIR} ${OPENSIM_HOME}/sdk/include/ ${OPENSIM_HOME}/sdk/include/OpenSim/ ${OPENSIM_HOME}/sdk/include/SimTK/simbody )
   set( OPENSIM_INSTALL_DIR "${OPENSIM_HOME}" CACHE PATH "Path to OpenSim Install." )
   set( CMAKE_MODULE_PATH "${OPENSIM_HOME}")
   find_package( OpenSim 3.3 MODULE )
-  add_library( OpenSimModel MODULE open_sim_model-legacy.cpp data_io.cpp data_logging.cpp sensors.cpp signal_processing.cpp )
   target_compile_definitions( OpenSimModel PUBLIC -DOSIM_LEGACY )
 else()
   find_package( Simbody 3.6 PATHS "${SIMBODY_HOME}" NO_MODULE NO_DEFAULT_PATH )
   find_package( OpenSim 4.0 PATHS "${OPENSIM_HOME}" NO_MODULE NO_DEFAULT_PATH )
-  add_library( OpenSimModel MODULE open_sim_model.cpp data_io.cpp data_logging.cpp sensors.cpp signal_processing.cpp )
   target_include_directories( OpenSimModel PUBLIC ${CMAKE_SOURCE_DIR} ${OpenSim_INCLUDE_DIRS} ${Simbody_INCLUDE_DIRS} )
 endif()
 

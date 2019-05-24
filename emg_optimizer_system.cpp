@@ -195,6 +195,7 @@ SimTK::Vector EMGOptimizerSystem::CalculateTorques( SimTK::State& state, SimTK::
       double activation = ( std::exp( activationFactorsList[ muscleIndex ] * emgInputs[ muscleIndex ] ) - 1 ) / ( std::exp( activationFactorsList[ muscleIndex ] ) - 1 );
 #ifdef OSIM_LEGACY
       muscleSet[ muscleIndex ].setActivation( state, activation );
+      
 #else
       muscleSet[ muscleIndex ].setExcitation( state, activation );
 #endif
