@@ -1,3 +1,6 @@
 [submodule "interface"]
 	path = interface
 	url = https://github.com/EESC-MKGroup/Robot-Control-Interface
+[submodule "perceptron"]
+	path = perceptron
+	url = https://github.com/EESC-MKGroup/Simple-MLP

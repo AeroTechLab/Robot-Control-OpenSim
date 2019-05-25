@@ -1,5 +1,5 @@
-#ifndef EMG_OPTIMIZER_SYSTEM_H
-#define EMG_OPTIMIZER_SYSTEM_H
+#ifndef EMG_OPTIMIZER_IMPL_H
+#define EMG_OPTIMIZER_IMPL_H
 
 #include <OpenSim/OpenSim.h>
 #include <OpenSim/Simulation/Model/Model.h>
@@ -9,12 +9,12 @@ typedef SimTK::Array_<OpenSim::CoordinateActuator*> ActuatorsList;
 enum { EMG_POSITION, EMG_VELOCITY, EMG_ACCELERATION, EMG_SETPOINT, EMG_POS_VARS_NUMBER };
 enum { EMG_TORQUE_EXT, EMG_TORQUE_INT, EMG_STIFFNESS, EMG_FORCE_VARS_NUMBER };
 
-class EMGOptimizerSystem : public SimTK::OptimizerSystem
+class EMGOptimizerImpl : public EMGOptimizer
 {
   public:
     /* Constructor class. Parameters accessed in objectiveFunc() class */
-    EMGOptimizerSystem( OpenSim::Model&, ActuatorsList&, int );
-    ~EMGOptimizerSystem();
+    EMGOptimizer( OpenSim::Model&, ActuatorsList&, int );
+    ~EMGOptimizer();
  
     int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
 
@@ -34,4 +34,4 @@ class EMGOptimizerSystem : public SimTK::OptimizerSystem
     //Log optimizationLog;
 };
 
-#endif // EMG_OPTIMIZER_SYSTEM_H
+#endif // EMG_OPTIMIZER_IMPL_H

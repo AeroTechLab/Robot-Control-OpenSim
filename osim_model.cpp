@@ -1,13 +1,15 @@
 #include <OpenSim/OpenSim.h>
 #include <OpenSim/Simulation/Model/Model.h>
 #include <OpenSim/Actuators/CoordinateActuator.h>
+#include <OpenSim/Simulation/InverseDynamicsSolver.h>
+#include <simbody/internal/Visualizer_InputListener.h>
 
 #include <iostream>
 #include <string>
 
 #include "interface/robot_control.h"
 
-#include "emg_optimizer_system.h"
+#include "emg_optimizer.h"
 
 struct
 {
@@ -19,7 +21,7 @@ struct
   SimTK::Array_<char*> axisNamesList;
   enum RobotState currentControlState;
   SimTK::Vector emgInputs;
-  EMGOptimizerSystem* emgProcessor;
+  EMGOptimizer* emgProcessor;
 }
 controller;
 
@@ -74,7 +76,7 @@ bool InitController( const char* data )
       }
     }
     
-    controller.emgProcessor = new EMGOptimizerSystem( *(controller.osimModel), controller.actuatorsList, 1000 );
+    controller.emgProcessor = new EMGOptimizer( *(controller.osimModel), controller.actuatorsList, 1000 );
     
     SetControlState( /*ROBOT_PASSIVE*/ROBOT_PREPROCESSING );
     
