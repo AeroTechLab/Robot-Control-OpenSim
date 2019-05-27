@@ -5,8 +5,8 @@
 EMGOptimizerImpl::EMGOptimizerImpl( OpenSim::Model& model, ActuatorsList& actuatorsList, const size_t samplesNumber ) 
 : EMGOptimizer( 2, samplesNumber )
 {
-  inputsNumber = model.getMuscles().getSize();
-  outputsNumber = EMG_FORCE_VARS_NUMBER * actuatorsList.size();
+  inputsNumber = model.getMuscles().getSize() + EMG_INPUT_VARS_NUMBER * actuatorsList.size();
+  outputsNumber = EMG_OUTPUT_VARS_NUMBER * actuatorsList.size();
   
   SimTK::Vector initialParametersList = GetInitialParameters();
   SimTK::Vector parametersMinList( initialParametersList.size() ), parametersMaxList( initialParametersList.size() );
@@ -71,7 +71,7 @@ int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool n
     SimTK::Vector positionSample = positionSamplesList[ sampleIndex ];
     SimTK::Vector torqueSample = torqueSamplesList[ sampleIndex ];
 
-    SimTK::Vector emgTorqueOutputs = CalculateTorques( state, emgSample );
+    SimTK::Vector emgTorqueOutputs = CalculateOutputs( state, emgSample );
     
     for( size_t jointIndex = 0; jointIndex < actuatorsList.size(); jointIndex++ )
     {
@@ -97,69 +97,21 @@ int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool n
   return 0;
 }
 
-SimTK::Vector EMGOptimizerImpl::CalculateTorques( SimTK::State& state, SimTK::Vector emgInputs ) const
+SimTK::Vector EMGOptimizerImpl::CalculateOutputs( const SimTK::Vector& emgInputs, const SimTK::Vector& extraInputSample ) const
 {
-  SimTK::Vector torqueInternalOutputs( EMG_FORCE_VARS_NUMBER * actuatorsList.size() );
-
-  try
-  {
-    OpenSim::Set<OpenSim::Muscle>& muscleSet = internalModel.updMuscles();
-    SimTK::Vector muscleForcesList( muscleSet.getSize() );
-    for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
-    {
-      double activation = ( std::exp( activationFactorsList[ muscleIndex ] * emgInputs[ muscleIndex ] ) - 1 ) / ( std::exp( activationFactorsList[ muscleIndex ] ) - 1 );
-#ifdef OSIM_LEGACY
-      muscleSet[ muscleIndex ].setActivation( state, activation );
-#else
-      muscleSet[ muscleIndex ].setExcitation( state, activation );
-#endif
-    }
-
-    internalModel.equilibrateMuscles( state );
-
-    for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
-      muscleForcesList[ muscleIndex ] = muscleSet[ muscleIndex ].getActiveFiberForce( state ) + muscleSet[ muscleIndex ].getPassiveFiberForce( state );
+  double* inputsList = new double[ inputsNumber ];
+  double* outputsList = new double[ outputsNumber ];
   
-    for( size_t jointIndex = 0; jointIndex < actuatorsList.size(); jointIndex++ )
-    {
-      OpenSim::Coordinate* jointCoordinate = actuatorsList[ jointIndex ]->getCoordinate();
-      int torqueIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_TORQUE_EXT;
-      int stiffnessIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_STIFFNESS;
-      torqueInternalOutputs[ torqueIndex ] = torqueInternalOutputs[ stiffnessIndex ] = 0.0;
-      for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
-      {
-        double muscleJointMomentArm = muscleSet[ muscleIndex ].computeMomentArm( state, *jointCoordinate );
-        double muscleJointTorque = muscleForcesList[ muscleIndex ] * muscleJointMomentArm;
-        torqueInternalOutputs[ torqueIndex ] += muscleJointTorque;
-        torqueInternalOutputs[ stiffnessIndex ] += std::abs( muscleJointTorque );
-      }
-      //std::cout << "joint " << jointIndex << " torque: " << torqueInternalOutputs[ torqueIndex ] << std::endl;
-    }
-  }
-  catch( OpenSim::Exception ex )
-  {
-    std::cout << ex.getMessage() << std::endl;
-  }
-  catch( std::exception ex )
-  {
-    std::cout << ex.what() << std::endl;
-  }
+  for( size_t valueIndex = 0; valueIndex < emgInputs.size(); valueIndex++ )
+    inputsList[ valueIndex ] = emgInputs[ valueIndex ];
+  for( size_t valueIndex = 0; valueIndex < extraInputSample.size(); valueIndex++ )
+    inputsList[ emgInputs.size() + valueIndex ] = extraInputSample[ valueIndex ];
+  
+  MLPerceptron_ProcessInput( perceptron, inputsList, outputsList );
+  
+  SimTK::Vector torqueInternalOutputs( outputsNumber, outputsList );
+  
+  delete[] outputsList;
   
   return torqueInternalOutputs;
-}
-
-bool EMGOptimizerImpl::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positionSample, SimTK::Vector& torqueSample )
-{
-  if( inputSamplesTable.size() >= MAX_SAMPLES_COUNT ) return false;
-  
-  inputSamplesTable.push_back( emgSample );
-  outputSamplesTable.push_back( positionSample );
-  
-  return true;
-}
-
-void EMGOptimizerImpl::ResetSamplesStorage()
-{
-  inputSamplesTable.clear();
-  outputSamplesTable.clear();
 }

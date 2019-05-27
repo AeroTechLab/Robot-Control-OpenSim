@@ -12,16 +12,13 @@ class EMGOptimizerImpl : public EMGOptimizer
  
     int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
 
-    SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector ) const;
-    bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
-    void ResetSamplesStorage();
+    SimTK::Vector CalculateOutputs( const SimTK::Vector&, const SimTK::Vector& ) const;
 
     SimTK::Vector GetInitialParameters();
     
   private:
     OpenSim::Model& internalModel;
     ActuatorsList& actuatorsList;
-    SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, torqueSamplesList;
     SimTK::Vector activationFactorsList;
 
     //Log optimizationLog;

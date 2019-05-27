@@ -195,7 +195,7 @@ void SetControlState( enum RobotState newControlState )
 }
 
 
-void PreProcessSample( SimTK::Vector& positionSample, SimTK::Vector& torqueSample )
+void PreProcessSample( SimTK::Vector& inputSample, SimTK::Vector& outputSample )
 {
   OpenSim::InverseDynamicsSolver idSolver( *(controller.osimModel) );
 
@@ -203,16 +203,15 @@ void PreProcessSample( SimTK::Vector& positionSample, SimTK::Vector& torqueSampl
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
   {
     OpenSim::Coordinate* jointCoordinate = controller.actuatorsList[ jointIndex ]->getCoordinate();
-    int positionOutputsIndex = jointIndex * EMG_POS_VARS_NUMBER;
-    jointCoordinate->setValue( controller.state, positionSample[ positionOutputsIndex + EMG_POSITION ] );
-    jointCoordinate->setSpeedValue( controller.state, positionSample[ positionOutputsIndex + EMG_VELOCITY ] );
+    int actuatorInputsIndex = controller.emgInputs.size() + jointIndex * EMG_INPUT_VARS_NUMBER;
+    jointCoordinate->setValue( controller.state, inputSample[ actuatorInputsIndex + EMG_POSITION ] );
+    jointCoordinate->setSpeedValue( controller.state, inputSample[ actuatorInputsIndex + EMG_VELOCITY ] );
     int jointAccelerationIndex = controller.accelerationIndexesList[ jointIndex ];
-    accelerationsList[ jointAccelerationIndex ] = positionSample[ positionOutputsIndex + EMG_ACCELERATION ];
-    int torqueOutputIndex = jointIndex * EMG_FORCE_VARS_NUMBER;
+    accelerationsList[ jointAccelerationIndex ] = inputSample[ actuatorInputsIndex + EMG_ACCELERATION ];
 #ifdef OSIM_LEGACY
-    controller.actuatorsList[ jointIndex ]->setOverrideForce( controller.state, torqueSample[ torqueOutputIndex + EMG_TORQUE_EXT ] );
+    controller.actuatorsList[ jointIndex ]->setOverrideForce( controller.state, inputSample[ actuatorInputsIndex + EMG_TORQUE_EXT ] );
 #else
-    controller.actuatorsList[ jointIndex ]->setOverrideActuation( controller.state, torqueSample[ torqueOutputIndex + EMG_TORQUE_EXT ] );
+    controller.actuatorsList[ jointIndex ]->setOverrideActuation( controller.state, inputSample[ actuatorInputsIndex + EMG_TORQUE_EXT ] );
 #endif
   }
   
@@ -222,13 +221,13 @@ void PreProcessSample( SimTK::Vector& positionSample, SimTK::Vector& torqueSampl
     
     for( int jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
     {
-      int positionOutputsIndex = jointIndex * EMG_POS_VARS_NUMBER;
-      double positionError = positionSample[ positionOutputsIndex + EMG_SETPOINT ] - positionSample[ positionOutputsIndex + EMG_POSITION ];
+      int actuatorInputsIndex = controller.emgInputs.size() + jointIndex * EMG_INPUT_VARS_NUMBER;
+      double positionError = inputSample[ actuatorInputsIndex + EMG_SETPOINT ] - inputSample[ actuatorInputsIndex + EMG_POSITION ];
       int jointTorqueIndex = controller.accelerationIndexesList[ jointIndex ];
       std::cout << "joint " << jointIndex << " coordinate index: " << jointTorqueIndex << std::endl;
-      int torqueOutputIndex = jointIndex * EMG_FORCE_VARS_NUMBER;
-      torqueSample[ torqueOutputIndex + EMG_TORQUE_INT ] = idForcesList[ jointIndex ];
-      torqueSample[ torqueOutputIndex + EMG_STIFFNESS ] = ( std::abs( positionError ) > 1.0e-6 ) ? idForcesList[ jointIndex ] / ( positionError ) : 100.0;
+      int actuatorOutputsIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER;
+      outputSample[ actuatorOutputsIndex + EMG_TORQUE_INT ] = idForcesList[ jointIndex ];
+      outputSample[ actuatorOutputsIndex + EMG_STIFFNESS ] = ( std::abs( positionError ) > 1.0e-6 ) ? idForcesList[ jointIndex ] / ( positionError ) : 100.0;
     }
   }
   catch( OpenSim::Exception ex )
@@ -245,33 +244,24 @@ void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMe
 {
   controller.state.updTime() = 0.0;
 
-  SimTK::Vector positionOutputs( EMG_POS_VARS_NUMBER * controller.actuatorsList.size() );
-  SimTK::Vector torqueOutputs( EMG_FORCE_VARS_NUMBER * controller.actuatorsList.size() );
+  SimTK::Vector actuatorInputs( EMG_INPUT_VARS_NUMBER * controller.actuatorsList.size() );
+  SimTK::Vector actuatorOutputs( EMG_OUTPUT_VARS_NUMBER * controller.actuatorsList.size() );
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
   {
-    OpenSim::Coordinate* jointCoordinate = controller.actuatorsList[ jointIndex ]->getCoordinate();
-    jointCoordinate->setValue( controller.state, jointMeasuresList[ jointIndex ]->position );
-    jointCoordinate->setSpeedValue( controller.state, jointMeasuresList[ jointIndex ]->velocity );
-#ifdef OSIM_LEGACY
-    controller.actuatorsList[ jointIndex ]->setForce( controller.state, jointMeasuresList[ jointIndex ]->force );
-#else
-    controller.actuatorsList[ jointIndex ]->setActuation( controller.state, jointMeasuresList[ jointIndex ]->force );
-#endif
-    size_t positionOutputsIndex = jointIndex * EMG_POS_VARS_NUMBER;
-    positionOutputs[ positionOutputsIndex + EMG_POSITION ] = jointMeasuresList[ jointIndex ]->position;
-    positionOutputs[ positionOutputsIndex + EMG_VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
-    positionOutputs[ positionOutputsIndex + EMG_ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
-    positionOutputs[ positionOutputsIndex + EMG_SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
-    size_t torqueOutputIndex = jointIndex * EMG_FORCE_VARS_NUMBER;
-    torqueOutputs[ torqueOutputIndex + EMG_TORQUE_EXT ] = jointMeasuresList[ jointIndex ]->force;
+    size_t actuatorInputsIndex = jointIndex * EMG_INPUT_VARS_NUMBER;
+    actuatorInputs[ actuatorInputsIndex + EMG_POSITION ] = jointMeasuresList[ jointIndex ]->position;
+    actuatorInputs[ actuatorInputsIndex + EMG_VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
+    actuatorInputs[ actuatorInputsIndex + EMG_ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
+    actuatorInputs[ actuatorInputsIndex + EMG_SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
+    actuatorInputs[ actuatorInputsIndex + EMG_TORQUE_EXT ] = jointMeasuresList[ jointIndex ]->force;
   }
   
-  PreProcessSample( positionOutputs, torqueOutputs );
+  PreProcessSample( actuatorInputs, actuatorOutputs );
   
   if( controller.currentControlState == ROBOT_PREPROCESSING )
-    controller.emgProcessor->StoreSamples( controller.emgInputs, positionOutputs, torqueOutputs );
+    controller.emgProcessor->StoreSamples( controller.emgInputs, actuatorInputs, actuatorOutputs );
   else if( controller.currentControlState == ROBOT_OPERATION )
-    torqueOutputs = controller.emgProcessor->CalculateTorques( controller.state, controller.emgInputs );
+    actuatorOutputs = controller.emgProcessor->CalculateOutputs( controller.emgInputs, actuatorInputs );
   
   OpenSim::Manager manager( *(controller.osimModel) );
 #ifdef OSIM_LEGACY
@@ -280,19 +270,16 @@ void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMe
   controller.state = manager.integrate( timeDelta );
 #endif
   
-  for( size_t axisIndex = 0; axisIndex < controller.actuatorsList.size(); axisIndex++ )
-  {
-    OpenSim::Coordinate* axisCoordinate = controller.actuatorsList[ axisIndex ]->getCoordinate();
-    axisMeasuresList[ axisIndex ]->position = axisCoordinate->getValue( controller.state );
-    axisMeasuresList[ axisIndex ]->velocity = axisCoordinate->getSpeedValue( controller.state );
-    axisMeasuresList[ axisIndex ]->acceleration = axisCoordinate->getAccelerationValue( controller.state );
-    size_t torqueOutputIndex = axisIndex * EMG_FORCE_VARS_NUMBER;
-    axisMeasuresList[ axisIndex ]->force = torqueOutputs[ torqueOutputIndex + EMG_TORQUE_EXT ];
-    axisMeasuresList[ axisIndex ]->stiffness = torqueOutputs[ torqueOutputIndex + EMG_STIFFNESS ];
-  }
-  
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
   {
+    size_t actuatorInputsIndex = jointIndex * EMG_INPUT_VARS_NUMBER;
+    axisMeasuresList[ jointIndex ]->position = actuatorInputs[ actuatorInputsIndex + EMG_POSITION ];
+    axisMeasuresList[ jointIndex ]->velocity = actuatorInputs[ actuatorInputsIndex + EMG_VELOCITY ];
+    axisMeasuresList[ jointIndex ]->acceleration = actuatorInputs[ actuatorInputsIndex + EMG_ACCELERATION ];
+    size_t actuatorOutputsIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER;
+    axisMeasuresList[ jointIndex ]->force = actuatorOutputs[ actuatorOutputsIndex + EMG_TORQUE_INT ];
+    axisMeasuresList[ jointIndex ]->stiffness = actuatorOutputs[ actuatorOutputsIndex + EMG_STIFFNESS ];
+
     jointSetpointsList[ jointIndex ]->position = axisSetpointsList[ jointIndex ]->position;
     jointSetpointsList[ jointIndex ]->velocity = axisSetpointsList[ jointIndex ]->velocity;
     jointSetpointsList[ jointIndex ]->acceleration = axisSetpointsList[ jointIndex ]->acceleration;

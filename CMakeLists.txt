@@ -36,4 +36,8 @@ set_target_properties( OpenSimModel PROPERTIES LIBRARY_OUTPUT_DIRECTORY plugins/
 set_target_properties( OpenSimModel PROPERTIES PREFIX "" )
 target_link_libraries( OpenSimModel ${OpenSim_LIBRARIES} ${Simbody_LIBRARIES} )
 
+set_target_properties( OpenSimModelNN PROPERTIES LIBRARY_OUTPUT_DIRECTORY plugins/robot_control )
+set_target_properties( OpenSimModelNN PROPERTIES PREFIX "" )
+target_link_libraries( OpenSimModelNN ${OpenSim_LIBRARIES} ${Simbody_LIBRARIES} )
+
 # install( TARGETS RobRehabGui RobRehabServer RUNTIME DESTINATION . )

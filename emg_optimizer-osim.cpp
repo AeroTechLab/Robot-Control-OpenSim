@@ -74,20 +74,25 @@ int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool n
   }
   
   remainingError = 0.0;
-  for( size_t sampleIndex = 0; sampleIndex < emgSamplesList.size(); sampleIndex++ )
+  for( size_t sampleIndex = 0; sampleIndex < inputSamplesList.size(); sampleIndex++ )
   {
-    SimTK::Vector emgSample = emgSamplesList[ sampleIndex ];
-    SimTK::Vector positionSample = positionSamplesList[ sampleIndex ];
-    SimTK::Vector torqueSample = torqueSamplesList[ sampleIndex ];
+    SimTK::Vector inputSample = inputSamplesList[ sampleIndex ];
+    SimTK::Vector emgSample( activationFactorsList.size() );
+    for( size_t valueIndex = 0; valueIndex < emgSample.size(); valueIndex++ )
+        emgSample[ valueIndex ] = inputSample[ valueIndex ];
+    SimTK::Vector extraInputSample( EMG_INPUT_VARS_NUMBER * actuatorsList.size() );
+    for( size_t valueIndex = 0; valueIndex < extraInputSample.size(); valueIndex++ )
+        extraInputSample[ valueIndex ] = inputSample[ emgSample.size() + valueIndex ];
+    SimTK::Vector outputSample = outputSamplesList[ sampleIndex ];
 
-    SimTK::Vector emgTorqueOutputs = CalculateTorques( state, emgSample );
+    SimTK::Vector calculatedOutputs = CalculateOutputs( emgSample, extraInputSample );
     
     for( size_t jointIndex = 0; jointIndex < actuatorsList.size(); jointIndex++ )
     {
-      int torqueOutputIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_TORQUE_INT;
-      remainingError += std::pow( torqueSample[ torqueOutputIndex ] - emgTorqueOutputs[ torqueOutputIndex ], 2.0 );
-      int stiffnessOutputIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_STIFFNESS;
-      remainingError += std::pow( torqueSample[ stiffnessOutputIndex ] - emgTorqueOutputs[ stiffnessOutputIndex ], 2.0 );
+      int torqueOutputIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER + EMG_TORQUE_INT;
+      remainingError += std::pow( outputSample[ torqueOutputIndex ] - calculatedOutputs[ torqueOutputIndex ], 2.0 );
+      int stiffnessOutputIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER + EMG_STIFFNESS;
+      remainingError += std::pow( outputSample[ stiffnessOutputIndex ] - calculatedOutputs[ stiffnessOutputIndex ], 2.0 );
     }
 
 	// Data logging for joint 0
@@ -106,12 +111,25 @@ int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool n
   return 0;
 }
 
-SimTK::Vector EMGOptimizerImpl::CalculateTorques( SimTK::State& state, SimTK::Vector emgInputs ) const
+SimTK::Vector EMGOptimizerImpl::CalculateOutputs( const SimTK::Vector& emgInputs, const SimTK::Vector& extraInputSample ) const
 {
-  SimTK::Vector torqueInternalOutputs( EMG_FORCE_VARS_NUMBER * actuatorsList.size() );
+  SimTK::State& state = internalModel.initSystem();
+  SimTK::Vector torqueInternalOutputs( EMG_OUTPUT_VARS_NUMBER * actuatorsList.size() );
 
   try
   {
+    for( size_t jointIndex = 0; jointIndex < actuatorsList.size(); jointIndex++ )
+    {
+      OpenSim::Coordinate* jointCoordinate = actuatorsList[ jointIndex ]->getCoordinate();
+      int extraInputsIndex = jointIndex * EMG_INPUT_VARS_NUMBER;
+      jointCoordinate->setValue( state, extraInputSample[ extraInputsIndex + EMG_POSITION ] );
+      jointCoordinate->setSpeedValue( state, extraInputSample[ extraInputsIndex + EMG_VELOCITY ] );
+#ifdef OSIM_LEGACY
+      actuatorsList[ jointIndex ]->setOverrideForce( state, extraInputSample[ extraInputsIndex + EMG_TORQUE_EXT ] );
+#else
+      actuatorsList[ jointIndex ]->setOverrideActuation( state, extraInputSample[ extraInputsIndex + EMG_TORQUE_EXT ] );
+#endif
+    }
     OpenSim::Set<OpenSim::Muscle>& muscleSet = internalModel.updMuscles();
     SimTK::Vector muscleForcesList( muscleSet.getSize() );
     for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
@@ -132,8 +150,8 @@ SimTK::Vector EMGOptimizerImpl::CalculateTorques( SimTK::State& state, SimTK::Ve
     for( size_t jointIndex = 0; jointIndex < actuatorsList.size(); jointIndex++ )
     {
       OpenSim::Coordinate* jointCoordinate = actuatorsList[ jointIndex ]->getCoordinate();
-      int torqueIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_TORQUE_EXT;
-      int stiffnessIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_STIFFNESS;
+      int torqueIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER + EMG_TORQUE_INT;
+      int stiffnessIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER + EMG_STIFFNESS;
       torqueInternalOutputs[ torqueIndex ] = torqueInternalOutputs[ stiffnessIndex ] = 0.0;
       for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
       {
@@ -155,22 +173,4 @@ SimTK::Vector EMGOptimizerImpl::CalculateTorques( SimTK::State& state, SimTK::Ve
   }
   
   return torqueInternalOutputs;
-}
-
-bool EMGOptimizerImpl::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positionSample, SimTK::Vector& torqueSample )
-{
-  if( emgSamplesList.size() >= MAX_SAMPLES_COUNT ) return false;
-  
-  emgSamplesList.push_back( emgSample );
-  positionSamplesList.push_back( positionSample );
-  torqueSamplesList.push_back( torqueSample );
-  
-  return true;
-}
-
-void EMGOptimizerImpl::ResetSamplesStorage()
-{
-  emgSamplesList.clear();
-  positionSamplesList.clear();
-  torqueSamplesList.clear();
 }

@@ -14,16 +14,13 @@ class EMGOptimizerImpl : public EMGOptimizer
  
     int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
 
-    SimTK::Vector CalculateTorques( SimTK::State&, SimTK::Vector ) const;
-    bool StoreSamples( SimTK::Vector&, SimTK::Vector&, SimTK::Vector& );
-    void ResetSamplesStorage();
+    SimTK::Vector CalculateOutputs( const SimTK::Vector&, const SimTK::Vector& ) const;
 
     SimTK::Vector GetInitialParameters();
     
   private:
     MLPerceptron perceptron;
     size_t inputsNumber, outputsNumber;
-    SimTK::Array_<double*> inputSamplesTable, outputSamplesTable;
 
     //Log optimizationLog;
 };
