@@ -9,7 +9,11 @@
 
 #include "interface/robot_control.h"
 
-#include "emg_optimizer.h"
+#ifndef USE_NN
+  #include "emg_optimizer-nn.h"
+#else
+  #include "emg_optimizer-osim.h"
+#endif
 
 struct
 {
@@ -21,7 +25,7 @@ struct
   SimTK::Array_<char*> axisNamesList;
   enum RobotState currentControlState;
   SimTK::Vector emgInputs;
-  EMGOptimizer* emgProcessor;
+  EMGOptimizerImpl* emgProcessor;
 }
 controller;
 
@@ -76,7 +80,7 @@ bool InitController( const char* data )
       }
     }
     
-    controller.emgProcessor = new EMGOptimizer( *(controller.osimModel), controller.actuatorsList, 1000 );
+    controller.emgProcessor = new EMGOptimizerImpl( *(controller.osimModel), controller.actuatorsList, 1000 );
     
     SetControlState( /*ROBOT_PASSIVE*/ROBOT_PREPROCESSING );
     

@@ -1,20 +1,14 @@
 #ifndef EMG_OPTIMIZER_IMPL_H
 #define EMG_OPTIMIZER_IMPL_H
 
-#include <OpenSim/OpenSim.h>
-#include <OpenSim/Simulation/Model/Model.h>
-
-typedef SimTK::Array_<OpenSim::CoordinateActuator*> ActuatorsList;
-
-enum { EMG_POSITION, EMG_VELOCITY, EMG_ACCELERATION, EMG_SETPOINT, EMG_POS_VARS_NUMBER };
-enum { EMG_TORQUE_EXT, EMG_TORQUE_INT, EMG_STIFFNESS, EMG_FORCE_VARS_NUMBER };
+#include "emg_optimizer.h"
 
 class EMGOptimizerImpl : public EMGOptimizer
 {
   public:
     /* Constructor class. Parameters accessed in objectiveFunc() class */
-    EMGOptimizer( OpenSim::Model&, ActuatorsList&, int );
-    ~EMGOptimizer();
+    EMGOptimizerImpl( OpenSim::Model&, ActuatorsList&, const size_t );
+    ~EMGOptimizerImpl();
  
     int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
 
@@ -29,7 +23,6 @@ class EMGOptimizerImpl : public EMGOptimizer
     ActuatorsList& actuatorsList;
     SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, torqueSamplesList;
     SimTK::Vector activationFactorsList;
-    const size_t MAX_SAMPLES_COUNT;
 
     //Log optimizationLog;
 };

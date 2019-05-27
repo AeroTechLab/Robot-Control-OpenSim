@@ -1,11 +1,11 @@
-#include "emg_optimizer.h"
+#include "emg_optimizer-osim.h"
 
 #include <cmath>
 
 enum { EMG_MAX_FORCE, EMG_FIBER_LENGTH, EMG_SLACK_LENGTH, EMG_PENNATION_ANGLE, EMG_ACTIVATION_FACTOR, EMG_OPT_VARS_NUMBER };
 
-EMGOptimizer::EMGOptimizer( OpenSim::Model& model, ActuatorsList& actuatorsList, int samplesNumber ) 
-: OptimizerSystem( EMG_OPT_VARS_NUMBER * model.getMuscles().getSize() ), internalModel( model ), actuatorsList( actuatorsList ), MAX_SAMPLES_COUNT( samplesNumber )
+EMGOptimizerImpl::EMGOptimizerImpl( OpenSim::Model& model, ActuatorsList& actuatorsList, const size_t samplesNumber ) 
+: EMGOptimizer( EMG_OPT_VARS_NUMBER * model.getMuscles().getSize(), samplesNumber ), internalModel( model ), actuatorsList( actuatorsList )
 {
   activationFactorsList.resize( internalModel.getMuscles().getSize() );
   
@@ -16,20 +16,20 @@ EMGOptimizer::EMGOptimizer( OpenSim::Model& model, ActuatorsList& actuatorsList,
     parametersMinList[ parameterIndex ] = 0.5 * initialParametersList[ parameterIndex ];
     parametersMaxList[ parameterIndex ] = 1.5 * initialParametersList[ parameterIndex ];
   }
-  //setParameterLimits( parametersMinList, parametersMaxList );
+  setParameterLimits( parametersMinList, parametersMaxList );
 
   //DataLogging.SetBaseDirectory( "test" );
   //optimizationLog = DataLogging.InitLog( "joints/optimization", 6 );
 }
 
-EMGOptimizer::~EMGOptimizer()
+EMGOptimizerImpl::~EMGOptimizerImpl()
 {
   ResetSamplesStorage();
 
   //DataLogging.EndLog( optimizationLog );
 }
 
-SimTK::Vector EMGOptimizer::GetInitialParameters()
+SimTK::Vector EMGOptimizerImpl::GetInitialParameters()
 {
   SimTK::Vector initialParametersList( EMG_OPT_VARS_NUMBER * internalModel.getMuscles().getSize() );
   OpenSim::Set<OpenSim::Muscle> muscleSet = internalModel.getMuscles();
@@ -46,7 +46,7 @@ SimTK::Vector EMGOptimizer::GetInitialParameters()
   return initialParametersList;
 }
 
-int EMGOptimizer::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
+int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
 {
   SimTK::State& state = internalModel.initSystem();
   try
@@ -106,7 +106,7 @@ int EMGOptimizer::objectiveFunc( const SimTK::Vector& parametersList, bool newCo
   return 0;
 }
 
-SimTK::Vector EMGOptimizer::CalculateTorques( SimTK::State& state, SimTK::Vector emgInputs ) const
+SimTK::Vector EMGOptimizerImpl::CalculateTorques( SimTK::State& state, SimTK::Vector emgInputs ) const
 {
   SimTK::Vector torqueInternalOutputs( EMG_FORCE_VARS_NUMBER * actuatorsList.size() );
 
@@ -157,7 +157,7 @@ SimTK::Vector EMGOptimizer::CalculateTorques( SimTK::State& state, SimTK::Vector
   return torqueInternalOutputs;
 }
 
-bool EMGOptimizer::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positionSample, SimTK::Vector& torqueSample )
+bool EMGOptimizerImpl::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positionSample, SimTK::Vector& torqueSample )
 {
   if( emgSamplesList.size() >= MAX_SAMPLES_COUNT ) return false;
   
@@ -168,7 +168,7 @@ bool EMGOptimizer::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positi
   return true;
 }
 
-void EMGOptimizer::ResetSamplesStorage()
+void EMGOptimizerImpl::ResetSamplesStorage()
 {
   emgSamplesList.clear();
   positionSamplesList.clear();

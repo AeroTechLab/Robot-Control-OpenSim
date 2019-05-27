@@ -8,7 +8,8 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 set( BUILD_LEGACY OFF CACHE BOOL "Build plug-in for OpenSim 3.x" )
 
-add_library( OpenSimModel MODULE osim_model.cpp emg_optimizer_system.cpp )
+add_library( OpenSimModel MODULE osim_model.cpp emg_optimizer-osim.cpp )
+add_library( OpenSimModelNN MODULE osim_model.cpp emg_optimizer-nn.cpp )
 
 if( BUILD_LEGACY )
   find_package( Simbody 3.5 REQUIRED PATHS "${SIMBODY_HOME}" NO_MODULE NO_DEFAULT_PATH )
@@ -17,13 +18,15 @@ if( BUILD_LEGACY )
   set( CMAKE_MODULE_PATH "${OPENSIM_HOME}")
   find_package( OpenSim 3.3 REQUIRED MODULE )
   target_compile_definitions( OpenSimModel PUBLIC -DOSIM_LEGACY )
+  target_compile_definitions( OpenSimModelNN PUBLIC -DOSIM_LEGACY -DUSE_NN )
 else()
   # Find the OpenSim libraries and header files.
   set( OPENSIM_INSTALL_DIR $ENV{OPENSIM_HOME} CACHE PATH "Top-level directory of OpenSim install." )
   # This command searches for the file OpenSimConfig.cmake
   # in common system directories and in OPENSIM_INSTALL_DIR.
   find_package( OpenSim 4.0 REQUIRED PATHS "${OPENSIM_INSTALL_DIR}" )
-  target_include_directories( OpenSimModel PUBLIC ${CMAKE_SOURCE_DIR} ${OpenSim_INCLUDE_DIRS} ${Simbody_INCLUDE_DIRS} )
+  include_directories( ${CMAKE_SOURCE_DIR} ${OpenSim_INCLUDE_DIRS} ${Simbody_INCLUDE_DIRS} )
+  target_compile_definitions( OpenSimModelNN PUBLIC -DUSE_NN )
 endif()
 
 mark_as_advanced( Simbody_DIR )

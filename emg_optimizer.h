@@ -13,7 +13,8 @@ class EMGOptimizer : public SimTK::OptimizerSystem
 {
   public:
     /* Constructor class. Parameters accessed in objectiveFunc() class */
-    EMGOptimizer( OpenSim::Model&, ActuatorsList&, int );
+    EMGOptimizer( const size_t parametersNumber, const size_t samplesNumber ) 
+    : OptimizerSystem( parametersNumber ), MAX_SAMPLES_COUNT( samplesNumber ) {};
     virtual ~EMGOptimizer();
  
     virtual int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const = 0;
@@ -23,6 +24,9 @@ class EMGOptimizer : public SimTK::OptimizerSystem
     virtual void ResetSamplesStorage() = 0;
 
     virtual SimTK::Vector GetInitialParameters() = 0;
+    
+  protected:
+    const size_t MAX_SAMPLES_COUNT;
 };
 
 #endif // EMG_OPTIMIZER_H

@@ -1,13 +1,12 @@
-#include "emg_optimizer.h"
+#include "emg_optimizer-nn.h"
 
 #include "perceptron/multi_layer_perceptron.h"
 
-enum { EMG_MAX_FORCE, EMG_FIBER_LENGTH, EMG_SLACK_LENGTH, EMG_PENNATION_ANGLE, EMG_ACTIVATION_FACTOR, EMG_OPT_VARS_NUMBER };
-
-EMGOptimizer::EMGOptimizer( OpenSim::Model& model, ActuatorsList& actuatorsList, int samplesNumber ) 
-: OptimizerSystem( EMG_OPT_VARS_NUMBER * model.getMuscles().getSize() ), internalModel( model ), actuatorsList( actuatorsList ), MAX_SAMPLES_COUNT( samplesNumber )
+EMGOptimizerImpl::EMGOptimizerImpl( OpenSim::Model& model, ActuatorsList& actuatorsList, const size_t samplesNumber ) 
+: EMGOptimizer( 2, samplesNumber )
 {
-  activationFactorsList.resize( internalModel.getMuscles().getSize() );
+  inputsNumber = model.getMuscles().getSize();
+  outputsNumber = EMG_FORCE_VARS_NUMBER * actuatorsList.size();
   
   SimTK::Vector initialParametersList = GetInitialParameters();
   SimTK::Vector parametersMinList( initialParametersList.size() ), parametersMaxList( initialParametersList.size() );
@@ -16,37 +15,29 @@ EMGOptimizer::EMGOptimizer( OpenSim::Model& model, ActuatorsList& actuatorsList,
     parametersMinList[ parameterIndex ] = 0.5 * initialParametersList[ parameterIndex ];
     parametersMaxList[ parameterIndex ] = 1.5 * initialParametersList[ parameterIndex ];
   }
-  //setParameterLimits( parametersMinList, parametersMaxList );
+  setParameterLimits( parametersMinList, parametersMaxList );
 
   //DataLogging.SetBaseDirectory( "test" );
   //optimizationLog = DataLogging.InitLog( "joints/optimization", 6 );
 }
 
-EMGOptimizer::~EMGOptimizer()
+EMGOptimizerImpl::~EMGOptimizerImpl()
 {
   ResetSamplesStorage();
 
   //DataLogging.EndLog( optimizationLog );
 }
 
-SimTK::Vector EMGOptimizer::GetInitialParameters()
+SimTK::Vector EMGOptimizerImpl::GetInitialParameters()
 {
-  SimTK::Vector initialParametersList( EMG_OPT_VARS_NUMBER * internalModel.getMuscles().getSize() );
-  OpenSim::Set<OpenSim::Muscle> muscleSet = internalModel.getMuscles();
-  for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
-  {
-    int parametersIndex = muscleIndex * EMG_OPT_VARS_NUMBER;
-    initialParametersList[ parametersIndex + EMG_MAX_FORCE ] = muscleSet[ muscleIndex ].get_max_isometric_force();
-    initialParametersList[ parametersIndex + EMG_FIBER_LENGTH ] = muscleSet[ muscleIndex ].get_optimal_fiber_length();
-    initialParametersList[ parametersIndex + EMG_SLACK_LENGTH ] = muscleSet[ muscleIndex ].get_tendon_slack_length();
-    initialParametersList[ parametersIndex + EMG_PENNATION_ANGLE ] = muscleSet[ muscleIndex ].get_pennation_angle_at_optimal();
-    initialParametersList[ parametersIndex + EMG_ACTIVATION_FACTOR ] = -2.0;
-  }
+  SimTK::Vector initialParametersList( 2 );
+  initialParametersList[ 0 ] = 10;
+  initialParametersList[ 1 ] = MAX_SAMPLES_COUNT / 2;
 
   return initialParametersList;
 }
 
-int EMGOptimizer::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
+int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
 {
   SimTK::State& state = internalModel.initSystem();
   try
@@ -106,7 +97,7 @@ int EMGOptimizer::objectiveFunc( const SimTK::Vector& parametersList, bool newCo
   return 0;
 }
 
-SimTK::Vector EMGOptimizer::CalculateTorques( SimTK::State& state, SimTK::Vector emgInputs ) const
+SimTK::Vector EMGOptimizerImpl::CalculateTorques( SimTK::State& state, SimTK::Vector emgInputs ) const
 {
   SimTK::Vector torqueInternalOutputs( EMG_FORCE_VARS_NUMBER * actuatorsList.size() );
 
@@ -157,20 +148,18 @@ SimTK::Vector EMGOptimizer::CalculateTorques( SimTK::State& state, SimTK::Vector
   return torqueInternalOutputs;
 }
 
-bool EMGOptimizer::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positionSample, SimTK::Vector& torqueSample )
+bool EMGOptimizerImpl::StoreSamples( SimTK::Vector& emgSample, SimTK::Vector& positionSample, SimTK::Vector& torqueSample )
 {
-  if( emgSamplesList.size() >= MAX_SAMPLES_COUNT ) return false;
+  if( inputSamplesTable.size() >= MAX_SAMPLES_COUNT ) return false;
   
-  emgSamplesList.push_back( emgSample );
-  positionSamplesList.push_back( positionSample );
-  torqueSamplesList.push_back( torqueSample );
+  inputSamplesTable.push_back( emgSample );
+  outputSamplesTable.push_back( positionSample );
   
   return true;
 }
 
-void EMGOptimizer::ResetSamplesStorage()
+void EMGOptimizerImpl::ResetSamplesStorage()
 {
-  emgSamplesList.clear();
-  positionSamplesList.clear();
-  torqueSamplesList.clear();
+  inputSamplesTable.clear();
+  outputSamplesTable.clear();
 }

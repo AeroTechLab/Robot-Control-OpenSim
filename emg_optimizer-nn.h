@@ -3,12 +3,14 @@
 
 #include "emg_optimizer.h"
 
+#include "perceptron/multi_layer_perceptron.h"
+
 class EMGOptimizerImpl : public EMGOptimizer
 {
   public:
     /* Constructor class. Parameters accessed in objectiveFunc() class */
-    EMGOptimizer( OpenSim::Model&, ActuatorsList&, int );
-    ~EMGOptimizer();
+    EMGOptimizerImpl( OpenSim::Model&, ActuatorsList&, const size_t );
+    ~EMGOptimizerImpl();
  
     int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
 
@@ -19,11 +21,9 @@ class EMGOptimizerImpl : public EMGOptimizer
     SimTK::Vector GetInitialParameters();
     
   private:
-    OpenSim::Model& internalModel;
-    ActuatorsList& actuatorsList;
-    SimTK::Array_<SimTK::Vector> emgSamplesList, positionSamplesList, torqueSamplesList;
-    SimTK::Vector activationFactorsList;
-    const size_t MAX_SAMPLES_COUNT;
+    MLPerceptron perceptron;
+    size_t inputsNumber, outputsNumber;
+    SimTK::Array_<double*> inputSamplesTable, outputSamplesTable;
 
     //Log optimizationLog;
 };
