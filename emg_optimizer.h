@@ -45,6 +45,8 @@ class EMGOptimizer : public SimTK::OptimizerSystem
 
     virtual SimTK::Vector GetInitialParameters() = 0;
     
+    virtual void SetParameters( const SimTK::Vector& ) = 0;
+    
   protected:
     const size_t MAX_SAMPLES_COUNT;
     SimTK::Array_<SimTK::Vector> inputSamplesList, outputSamplesList;

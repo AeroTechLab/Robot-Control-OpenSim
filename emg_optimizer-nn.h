@@ -17,6 +17,7 @@ class EMGOptimizerImpl : public EMGOptimizer
     SimTK::Vector CalculateOutputs( const SimTK::Vector&, const SimTK::Vector& ) const;
 
     SimTK::Vector GetInitialParameters();
+    void SetParameters( const SimTK::Vector& );
     
   private:
     MLPerceptron perceptron;

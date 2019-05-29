@@ -37,6 +37,23 @@ SimTK::Vector EMGOptimizerImpl::GetInitialParameters()
   return initialParametersList;
 }
 
+void EMGOptimizerImpl::SetParameters( const SimTK::Vector& parametersList )
+{
+  size_t hiddenNeuronsNumber = (size_t) parametersList[ 0 ];
+  size_t trainingSamplesNumber = (size_t) parametersList[ 1 ];
+  
+  perceptron = MLPerceptron_InitNetwork( inputsNumber, outputsNumber, hiddenNeuronsNumber );
+  
+  SimTK::Array_<const double*> trainingInputsTable, trainingOutputsTable;
+  for( size_t sampleIndex = 0; sampleIndex < trainingSamplesNumber; sampleIndex++ )
+  {
+    trainingInputsTable.push_back( inputSamplesList[ sampleIndex ].getContiguousScalarData() );
+    trainingOutputsTable.push_back( outputSamplesList[ sampleIndex ].getContiguousScalarData() );
+  }
+  
+  (void) MLPerceptron_Train( perceptron, trainingInputsTable.data(), trainingOutputsTable.data(), trainingSamplesNumber );
+}
+
 int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
 {
   size_t hiddenNeuronsNumber = (size_t) parametersList[ 0 ];

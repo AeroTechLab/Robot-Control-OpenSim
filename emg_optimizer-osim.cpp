@@ -46,6 +46,10 @@ SimTK::Vector EMGOptimizerImpl::GetInitialParameters()
   return initialParametersList;
 }
 
+void EMGOptimizerImpl::SetParameters( const SimTK::Vector& parametersList )
+{
+}
+
 int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
 {
   SimTK::State& state = internalModel.initSystem();
