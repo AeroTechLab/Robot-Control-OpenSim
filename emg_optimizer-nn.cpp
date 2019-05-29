@@ -39,48 +39,37 @@ SimTK::Vector EMGOptimizerImpl::GetInitialParameters()
 
 int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
 {
-  SimTK::State& state = internalModel.initSystem();
-  try
+  size_t hiddenNeuronsNumber = (size_t) parametersList[ 0 ];
+  size_t trainingSamplesNumber = (size_t) parametersList[ 1 ];
+  
+  MLPerceptron testMLP = MLPerceptron_InitNetwork( inputsNumber, outputsNumber, hiddenNeuronsNumber );
+  
+  SimTK::Array_<const double*> trainingInputsTable, trainingOutputsTable;
+  for( size_t sampleIndex = 0; sampleIndex < trainingSamplesNumber; sampleIndex++ )
   {
-    internalModel.equilibrateMuscles( state );
-    OpenSim::Set<OpenSim::Muscle>& muscleSet = internalModel.updMuscles();
-    for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
-    {
-      int parametersIndex = muscleIndex * EMG_OPT_VARS_NUMBER;
-      muscleSet[ muscleIndex ].set_max_isometric_force( parametersList[ parametersIndex + EMG_MAX_FORCE ] );
-      muscleSet[ muscleIndex ].set_optimal_fiber_length( parametersList[ parametersIndex + EMG_FIBER_LENGTH ] );
-      muscleSet[ muscleIndex ].set_tendon_slack_length( parametersList[ parametersIndex + EMG_SLACK_LENGTH ] );
-      //std::cout << "muscle " << muscleIndex << " pennation angle: " << parametersList[ parametersIndex + EMG_PENNATION_ANGLE ] << std::endl;
-      //muscleSet[ muscleIndex ].set_pennation_angle_at_optimal( parametersList[ parametersIndex + EMG_PENNATION_ANGLE ] );
-      const_cast<SimTK::Vector&>(activationFactorsList)[ muscleIndex ] = parametersList[ parametersIndex + EMG_ACTIVATION_FACTOR ];
-    }
-  }
-  catch( OpenSim::Exception ex )
-  {
-    std::cout << ex.getMessage() << std::endl;
-  }
-  catch( std::exception ex )
-  {
-    std::cout << ex.what() << std::endl;
+    trainingInputsTable.push_back( inputSamplesList[ sampleIndex ].getContiguousScalarData() );
+    trainingOutputsTable.push_back( outputSamplesList[ sampleIndex ].getContiguousScalarData() );
   }
   
-  remainingError = 0.0;
-  for( size_t sampleIndex = 0; sampleIndex < emgSamplesList.size(); sampleIndex++ )
+  double trainingError = MLPerceptron_Train( testMLP, trainingInputsTable.data(), trainingOutputsTable.data(), trainingSamplesNumber );
+  
+  trainingInputsTable.clear();
+  trainingOutputsTable.clear();
+  
+  SimTK::Array_<const double*> validationInputsTable, validationOutputsTable;
+  size_t validationSamplesNumber = 0;
+  for( size_t sampleIndex = trainingSamplesNumber; sampleIndex < inputSamplesList.size(); sampleIndex++ )
   {
-    SimTK::Vector emgSample = emgSamplesList[ sampleIndex ];
-    SimTK::Vector positionSample = positionSamplesList[ sampleIndex ];
-    SimTK::Vector torqueSample = torqueSamplesList[ sampleIndex ];
+    validationInputsTable.push_back( inputSamplesList[ sampleIndex ].getContiguousScalarData() );
+    validationOutputsTable.push_back( outputSamplesList[ sampleIndex ].getContiguousScalarData() );
+    validationSamplesNumber++;
+  }
+  
+  double validationError = MLPerceptron_Validate( testMLP, validationInputsTable.data(), validationOutputsTable.data(), validationSamplesNumber );
 
-    SimTK::Vector emgTorqueOutputs = CalculateOutputs( state, emgSample );
+  validationInputsTable.clear();
+  validationOutputsTable.clear();
     
-    for( size_t jointIndex = 0; jointIndex < actuatorsList.size(); jointIndex++ )
-    {
-      int torqueOutputIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_TORQUE_INT;
-      remainingError += std::pow( torqueSample[ torqueOutputIndex ] - emgTorqueOutputs[ torqueOutputIndex ], 2.0 );
-      int stiffnessOutputIndex = jointIndex * EMG_FORCE_VARS_NUMBER + EMG_STIFFNESS;
-      remainingError += std::pow( torqueSample[ stiffnessOutputIndex ] - emgTorqueOutputs[ stiffnessOutputIndex ], 2.0 );
-    }
-
 	// Data logging for joint 0
 // 	for( int sampleIndex = 0; sampleIndex < EMG_POS_VARS_NUMBER; sampleIndex++ )
 // 	  DataLogging.RegisterValues( optimizationLog, 1, positionSample[ sampleIndex ] );
@@ -90,8 +79,9 @@ int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool n
 // 	DataLogging.RegisterValues( optimizationLog, 2, torqueSample[ EMG_FORCE_VARS_NUMBER + EMG_TORQUE_EXT ], emgTorqueOutputs[ EMG_FORCE_VARS_NUMBER + EMG_TORQUE_INT ] );
 // 	DataLogging.RegisterValues( optimizationLog, 2, torqueSample[ EMG_FORCE_VARS_NUMBER + EMG_TORQUE_EXT ], emgTorqueOutputs[ EMG_FORCE_VARS_NUMBER + EMG_STIFFNESS ] );
 // 	DataLogging.EnterNewLine( optimizationLog );
-  }
 
+  remainingError = trainingError + 0.5 * validationError;
+    
   std::cout << "objective function error: " << remainingError << std::endl;
 
   return 0;
