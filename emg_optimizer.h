@@ -4,7 +4,7 @@
 #include <OpenSim/OpenSim.h>
 #include <OpenSim/Simulation/Model/Model.h>
 
-typedef SimTK::Array_<OpenSim::CoordinateActuator*> ActuatorsList;
+typedef std::vector<OpenSim::CoordinateActuator*> ActuatorsList;
 
 enum { EMG_POSITION, EMG_VELOCITY, EMG_ACCELERATION, EMG_SETPOINT, EMG_TORQUE_EXT, EMG_INPUT_VARS_NUMBER };
 enum { EMG_TORQUE_INT, EMG_STIFFNESS, EMG_OUTPUT_VARS_NUMBER };

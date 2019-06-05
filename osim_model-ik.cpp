@@ -2,10 +2,12 @@
 #include <OpenSim/Simulation/Model/Model.h>
 #include <OpenSim/Actuators/CoordinateActuator.h>
 #include <OpenSim/Simulation/InverseDynamicsSolver.h>
+#include <OpenSim/Simulation/InverseKinematicsSolver.h>
 #include <simbody/internal/Visualizer_InputListener.h>
 
 #include <iostream>
 #include <string>
+//#include <vector>
 
 #include "interface/robot_control.h"
 
@@ -19,14 +21,15 @@ struct
 {
   OpenSim::Model* osimModel;
   SimTK::State state;
-  SimTK::Array_<OpenSim::CoordinateActuator*> actuatorsList;
-  SimTK::Array_<int> accelerationIndexesList;
-  OpenSim::InverseKinematicsSolver* ikSolver;
+  std::vector<OpenSim::CoordinateActuator*> actuatorsList;
+  std::vector<int> accelerationIndexesList;
   SimTK::Array_<OpenSim::CoordinateReference> coordinateReferences;
   OpenSim::MarkerSet markers;
   OpenSim::MarkersReference markersReference;
-  SimTK::Array_<char*> jointNamesList;
-  SimTK::Array_<char*> axisNamesList;
+  OpenSim::Set<OpenSim::MarkerWeight> markerWeights;
+  std::vector<int> markerAxes;
+  std::vector<char*> jointNamesList;
+  std::vector<char*> axisNamesList;
   enum RobotState currentControlState;
   SimTK::Vector emgInputs;
   EMGOptimizerImpl* emgProcessor;
@@ -40,8 +43,7 @@ DECLARE_MODULE_INTERFACE( ROBOT_CONTROL_INTERFACE );
 bool InitController( const char* data )
 { 
   try 
-  {
-    // Create an OpenSim model from XML (.osim) file
+  { // Create an OpenSim model from XML (.osim) file
     controller.osimModel = new OpenSim::Model( std::string( "config/robots/" ) + data + ".osim" );
     controller.osimModel->printBasicInfo( std::cout );
     
@@ -49,11 +51,9 @@ bool InitController( const char* data )
     
     //controller.osimModel->setUseVisualizer( true ); // not for RT
 
-    // Initialize the system
-    controller.state = controller.osimModel->initSystem();
+    controller.state = controller.osimModel->initSystem();    // Initialize the system
 
     OpenSim::MarkerSet& markerSet = controller.osimModel->updMarkerSet(); std::cout << "OSim: found " << markerSet.getSize() << " markers" << std::endl;
-	OpenSim::MarkerFrame* updateFrame = new OpenSim::MarkerFrame( controller.markerSet.getSize(), 0, 0.0, OpenSim::Units::Meters );
     for( int markerIndex = 0; markerIndex < markerSet.getSize(); markerIndex++ )
     {
       std::string markerName = markerSet[ markerIndex ].getName();
@@ -63,29 +63,17 @@ bool InitController( const char* data )
         if( markerName.rfind( REFERENCE_AXES_NAMES[ referenceAxisIndex ] ) != std::string::npos )
         {
           std::cout << "OSim: found reference marker " << markerName << std::endl;
-		  updateFrame->addMarker( SimTK::Vec3( 0 ) );
+          controller.markerWeights.adoptAndAppend( new OpenSim::MarkerWeight( markerName, 1.0 ) );
           controller.markers.adoptAndAppend( &(markerSet[ markerIndex ]) );
-		  controller.markersReference._markerNames.push_back( markerName );
-		  controller.markersReference._weights.push_back( 1.0 );
-		  controller.markersReference._markerWeightSet.adoptAndAppend( new OpenSim::MarkerWeight( markerName, 1.0 ) );
-          controller.markerReferenceAxes.push_back( referenceAxisIndex );
-          controller.axisNames.push_back( (char*) markerSet[ markerIndex ].getName().c_str() );
+          controller.markerAxes.push_back( referenceAxisIndex );
+          controller.axisNamesList.push_back( (char*) markerSet[ markerIndex ].getName().c_str() );
           break;
         }
       }
     }
-	controller.markersReference._markerData = new OpenSim::MarkerData();
-	controller.markersReference._markerData->_frames.append( updateFrame );
-	controller.markersReference._markerData->_numFrames = controller.markersReference._markerData->_frames.getSize();
-
-	controller.axesChangedList.resize( markerSet.getSize() );
     
-	std::cout << "OSim: generated markers reference size" << controller.markersReference.updMarkerWeightSet().getSize() << std::endl;
-	std::cout << "OSim: generated coordinates reference size: " << controller.coordinateReferences.size() << std::endl;
-    controller.ikSolver = new OpenSim::InverseKinematicsSolver( *(controller.osimModel), controller.markersReference, controller.coordinateReferences );
-	std::cout << "OSim: IK solver created" << std::endl;
-    controller.ikSolver->setAccuracy( 1.0e-4 ); std::cout << "OSim: IK solver set up" << std::endl;
-    controller.ikSolver->assemble( controller.state ); std::cout << "OSim: IK solver assembled" << std::endl;
+    std::cout << "OSim: generated markers reference size" << controller.markersReference.updMarkerWeightSet().getSize() << std::endl;
+    std::cout << "OSim: generated coordinates reference size: " << controller.coordinateReferences.size() << std::endl;
     
     OpenSim::Set<OpenSim::Muscle> muscleSet = controller.osimModel->getMuscles();
     for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
@@ -111,6 +99,7 @@ bool InitController( const char* data )
           OpenSim::CoordinateSet coordinateSet = controller.osimModel->getCoordinateSet();
           OpenSim::Coordinate& actuatorCoordinate = coordinateSet.get( actuator->getName() );
           actuator->setCoordinate( &actuatorCoordinate );
+          controller.coordinateReferences.push_back( OpenSim::CoordinateReference( actuatorCoordinate.getName(), OpenSim::Constant( 0.0 ) ) );
           controller.actuatorsList.push_back( actuator );
           controller.jointNamesList.push_back( (char*) actuator->getCoordinate()->getName().c_str() );
           controller.axisNamesList.push_back( (char*) actuator->getCoordinate()->getName().c_str() );
@@ -151,14 +140,9 @@ bool InitController( const char* data )
 
 void EndController()
 {
-  controller.osimModel->markers.clearAndDestroy();
-  controller.osimModel->actuatorsList.clear();
-  controller.osimModel->accelerationIndexesList.clear();
-  controller.osimModel->coordinateReferences.clear(); 
+  controller.markers.clearAndDestroy();
   
   delete controller.osimModel;
-  
-  delete controller.ikSolver;
   
   controller.jointNamesList.clear();
   controller.axisNamesList.clear();
@@ -317,40 +301,28 @@ void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMe
   controller.state = manager.integrate( timeDelta );
 #endif
   
-  SimTK::Vec3 markerPosition, markerVelocity, markerAcceleration;
+  OpenSim::TimeSeriesTableVec3 markersTimeTable( std::vector<double>( { 0.0 } ) );
+  SimTK::RowVector_<SimTK::Vec3> markersTimeRow( controller.markers.getSize() );
   for( int markerIndex = 0; markerIndex < controller.markers.getSize(); markerIndex++ )
   {
-    controller.osimModel->getSimbodyEngine().getPosition( controller.state, controller.markers[ markerIndex ].getBody(), controller.markers[ markerIndex ].getOffset(), markerPosition );
-    controller.osimModel->getSimbodyEngine().getVelocity( controller.state, controller.markers[ markerIndex ].getBody(), controller.markers[ markerIndex ].getOffset(), markerVelocity );
-    controller.osimModel->getSimbodyEngine().getAcceleration( controller.state, controller.markers[ markerIndex ].getBody(), controller.markers[ markerIndex ].getOffset(), markerAcceleration );
-    
-    axisMeasuresList[ markerIndex ]->position = markerPosition[ controller.markerReferenceAxes[ markerIndex ] ];
-    axisMeasuresList[ markerIndex ]->velocity = markerVelocity[ controller.markerReferenceAxes[ markerIndex ] ];
-    axisMeasuresList[ markerIndex ]->acceleration = markerAcceleration[ controller.markerReferenceAxes[ markerIndex ] ];
+    size_t markerAxisIndex = controller.markerAxes[ markerIndex ];
+    axisMeasuresList[ markerIndex ]->position = controller.markers[ markerIndex ].getLocationInGround( controller.state )[ markerAxisIndex ];
+    axisMeasuresList[ markerIndex ]->velocity = controller.markers[ markerIndex ].getVelocityInGround( controller.state )[ markerAxisIndex ];
+    axisMeasuresList[ markerIndex ]->acceleration = controller.markers[ markerIndex ].getAccelerationInGround( controller.state )[ markerAxisIndex ];
     //axisMeasuresTable[ markerIndex ]->force = jointMeasuresTable[ markerIndex ]->force;
     
-    markerPosition[ controller.markerReferenceAxes[ markerIndex ] ] = axisSetpointsList[ markerIndex ]->position;
-    //controller.markersReference.setValue( markerIndex, markerPosition );
-	controller.markersReference._markerData->_frames.get( 0 )->updMarker( 0 ) = SimTK::Vec3( 0 );
+    markersTimeRow[ markerIndex ][ markerAxisIndex ] = axisSetpointsList[ markerIndex ]->position;
   }
-  
-  controller.ikSolver->track( controller.state );
+  markersTimeTable.setRow( 0.0, markersTimeRow );
+  OpenSim::MarkersReference markersReference( markersTimeTable, &(controller.markerWeights) );
+  OpenSim::InverseKinematicsSolver ikSolver( *(controller.osimModel), markersReference, controller.coordinateReferences );
+  ikSolver.setAccuracy( 1.0e-4 ); std::cout << "OSim: IK solver set up" << std::endl;
+  ikSolver.assemble( controller.state ); std::cout << "OSim: IK solver assembled" << std::endl;
+  ikSolver.track( controller.state );
   
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
   {
-    size_t actuatorInputsIndex = jointIndex * EMG_INPUT_VARS_NUMBER;
-    axisMeasuresList[ jointIndex ]->position = actuatorInputs[ actuatorInputsIndex + EMG_POSITION ];
-    axisMeasuresList[ jointIndex ]->velocity = actuatorInputs[ actuatorInputsIndex + EMG_VELOCITY ];
-    axisMeasuresList[ jointIndex ]->acceleration = actuatorInputs[ actuatorInputsIndex + EMG_ACCELERATION ];
-    size_t actuatorOutputsIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER;
-    axisMeasuresList[ jointIndex ]->force = actuatorOutputs[ actuatorOutputsIndex + EMG_TORQUE_INT ];
-    axisMeasuresList[ jointIndex ]->stiffness = actuatorOutputs[ actuatorOutputsIndex + EMG_STIFFNESS ];
-
-    jointSetpointsList[ jointIndex ]->position = axisSetpointsList[ jointIndex ]->position;
-    jointSetpointsList[ jointIndex ]->velocity = axisSetpointsList[ jointIndex ]->velocity;
-    jointSetpointsList[ jointIndex ]->acceleration = axisSetpointsList[ jointIndex ]->acceleration;
-    jointSetpointsList[ jointIndex ]->force = axisSetpointsList[ jointIndex ]->force;
+    OpenSim::Coordinate* jointCoordinate = controller.actuatorsList[ jointIndex ]->getCoordinate();
+    jointSetpointsList[ jointIndex ]->position = jointCoordinate->getValue( controller.state );
   }
-
-  //std::cout << "joint 0 position: " << controller.actuatorsList[ 0 ]->getCoordinate()->getValue( state ) << std::endl;
 }
