@@ -1,0 +1,1018 @@
+<Model>
+    <!--List of components that this component owns and serializes.-->
+    <components />
+    <!--Specify how accurate the resulting configuration of a model assembly should be. This translates to the number of significant digits in the resulting coordinate values. Therefore, if you require initial conditions accurate to four significant digits, use a minimum of 1e-4 as the accuracy.The default setting is 1e-9 as to satisfy the most stringent requirements by default. NOTE: Failure for a model to satisfy the assembly accuracy often indicates inconsistency in the constraints. For example, the feet are welded at locations measured to five significant digits while the model lacks dofs to change stance width, in which case it cannot achieve 1e-9 accuracy.-->
+    <assembly_accuracy>1.0000000000000001e-09</assembly_accuracy>
+    <!--The model's ground reference frame.-->
+    <Ground name="ground">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <!--The geometry used to display the axes of this Frame.-->
+        <FrameGeometry name="frame_geometry">
+            <!--List of components that this component owns and serializes.-->
+            <components />
+            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+            <socket_frame>..</socket_frame>
+            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+            <input_transform></input_transform>
+            <!--Scale factors in X, Y, Z directions respectively.-->
+            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+            <!--Default appearance attributes for this Geometry-->
+            <Appearance>
+                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                <visible>true</visible>
+                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                <opacity>1</opacity>
+                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                <color>1 1 1</color>
+                <!--Visuals applied to surfaces associated with this Appearance.-->
+                <SurfaceProperties>
+                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                    <representation>3</representation>
+                </SurfaceProperties>
+            </Appearance>
+            <!--The radius of the arrow-shaft used to display the frame.-->
+            <display_radius>0.0040000000000000001</display_radius>
+        </FrameGeometry>
+        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+        <attached_geometry />
+        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+        <WrapObjectSet name="wrapobjectset">
+            <!--List of components that this component owns and serializes.-->
+            <components />
+            <objects />
+            <groups />
+        </WrapObjectSet>
+    </Ground>
+    <!--Acceleration due to gravity, expressed in ground.-->
+    <gravity>0 0 0</gravity>
+    <!--Credits (e.g., model author names) associated with the model.-->
+    <credits>Frank Anderson, Peter Loan, Ayman Habib, Ajay Seth, Michael Sherman</credits>
+    <!--Publications and references associated with the model.-->
+    <publications>List of publications related to model...</publications>
+    <!--Units for all lengths.-->
+    <length_units>meters</length_units>
+    <!--Units for all forces.-->
+    <force_units>N</force_units>
+    <!--List of bodies that make up this model.-->
+    <BodySet name="bodyset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects>
+            <Body name="body_1">
+                <!--List of components that this component owns and serializes.-->
+                <components>
+                    <PhysicalOffsetFrame name="physicaloffsetframe">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry>
+                            <Cylinder name="_geom_1">
+                                <!--List of components that this component owns and serializes.-->
+                                <components />
+                                <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                                <socket_frame>..</socket_frame>
+                                <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                                <input_transform></input_transform>
+                                <!--Scale factors in X, Y, Z directions respectively.-->
+                                <scale_factors>1 1 1</scale_factors>
+                                <!--Default appearance attributes for this Geometry-->
+                                <Appearance>
+                                    <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                    <visible>true</visible>
+                                    <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                    <opacity>1</opacity>
+                                    <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                    <color>0 0 1</color>
+                                    <!--Visuals applied to surfaces associated with this Appearance.-->
+                                    <SurfaceProperties>
+                                        <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                        <representation>3</representation>
+                                    </SurfaceProperties>
+                                </Appearance>
+                                <!--Radius of cylinder.-->
+                                <radius>0.5</radius>
+                                <!--Half-Height of cylinder.-->
+                                <half_height>0.5</half_height>
+                            </Cylinder>
+                        </attached_geometry>
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>..</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 0 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>1.5707963267948966 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                    <PhysicalOffsetFrame name="physicaloffsetframe_0">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry>
+                            <Brick name="_geom_1">
+                                <!--List of components that this component owns and serializes.-->
+                                <components />
+                                <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                                <socket_frame>..</socket_frame>
+                                <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                                <input_transform></input_transform>
+                                <!--Scale factors in X, Y, Z directions respectively.-->
+                                <scale_factors>1 1 1</scale_factors>
+                                <!--Default appearance attributes for this Geometry-->
+                                <Appearance>
+                                    <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                    <visible>true</visible>
+                                    <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                    <opacity>1</opacity>
+                                    <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                    <color>1 1 1</color>
+                                    <!--Visuals applied to surfaces associated with this Appearance.-->
+                                    <SurfaceProperties>
+                                        <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                        <representation>3</representation>
+                                    </SurfaceProperties>
+                                </Appearance>
+                                <!--Half lengths in X, Y, Z respectively.-->
+                                <half_lengths>0.10000000000000001 0.75 0.25</half_lengths>
+                            </Brick>
+                        </attached_geometry>
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>..</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 0.75 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>0 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                    <PhysicalOffsetFrame name="physicaloffsetframe_1">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry>
+                            <Cylinder name="_geom_1">
+                                <!--List of components that this component owns and serializes.-->
+                                <components />
+                                <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                                <socket_frame>..</socket_frame>
+                                <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                                <input_transform></input_transform>
+                                <!--Scale factors in X, Y, Z directions respectively.-->
+                                <scale_factors>1 1 1</scale_factors>
+                                <!--Default appearance attributes for this Geometry-->
+                                <Appearance>
+                                    <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                    <visible>true</visible>
+                                    <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                    <opacity>1</opacity>
+                                    <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                    <color>0 0 1</color>
+                                    <!--Visuals applied to surfaces associated with this Appearance.-->
+                                    <SurfaceProperties>
+                                        <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                        <representation>3</representation>
+                                    </SurfaceProperties>
+                                </Appearance>
+                                <!--Radius of cylinder.-->
+                                <radius>0.25</radius>
+                                <!--Half-Height of cylinder.-->
+                                <half_height>0.5</half_height>
+                            </Cylinder>
+                        </attached_geometry>
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>..</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 1.5 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>1.5707963267948966 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                </components>
+                <!--The geometry used to display the axes of this Frame.-->
+                <FrameGeometry name="frame_geometry">
+                    <!--List of components that this component owns and serializes.-->
+                    <components />
+                    <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                    <socket_frame>..</socket_frame>
+                    <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                    <input_transform></input_transform>
+                    <!--Scale factors in X, Y, Z directions respectively.-->
+                    <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                    <!--Default appearance attributes for this Geometry-->
+                    <Appearance>
+                        <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                        <visible>true</visible>
+                        <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                        <opacity>1</opacity>
+                        <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                        <color>1 1 1</color>
+                        <!--Visuals applied to surfaces associated with this Appearance.-->
+                        <SurfaceProperties>
+                            <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                            <representation>3</representation>
+                        </SurfaceProperties>
+                    </Appearance>
+                    <!--The radius of the arrow-shaft used to display the frame.-->
+                    <display_radius>0.0040000000000000001</display_radius>
+                </FrameGeometry>
+                <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                <attached_geometry />
+                <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                <WrapObjectSet name="wrapobjectset">
+                    <!--List of components that this component owns and serializes.-->
+                    <components />
+                    <objects />
+                    <groups />
+                </WrapObjectSet>
+                <!--The mass of the body (kg)-->
+                <mass>1</mass>
+                <!--The location (Vec3) of the mass center in the body frame.-->
+                <mass_center>0 0 0</mass_center>
+                <!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
+                <inertia>1 1 1 0 0 0</inertia>
+            </Body>
+            <Body name="body_1_0">
+                <!--List of components that this component owns and serializes.-->
+                <components>
+                    <PhysicalOffsetFrame name="physicaloffsetframe">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry>
+                            <Cylinder name="_geom_1">
+                                <!--List of components that this component owns and serializes.-->
+                                <components />
+                                <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                                <socket_frame>..</socket_frame>
+                                <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                                <input_transform></input_transform>
+                                <!--Scale factors in X, Y, Z directions respectively.-->
+                                <scale_factors>1 1 1</scale_factors>
+                                <!--Default appearance attributes for this Geometry-->
+                                <Appearance>
+                                    <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                    <visible>true</visible>
+                                    <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                    <opacity>1</opacity>
+                                    <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                    <color>1 0 0</color>
+                                    <!--Visuals applied to surfaces associated with this Appearance.-->
+                                    <SurfaceProperties>
+                                        <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                        <representation>3</representation>
+                                    </SurfaceProperties>
+                                </Appearance>
+                                <!--Radius of cylinder.-->
+                                <radius>0.5</radius>
+                                <!--Half-Height of cylinder.-->
+                                <half_height>0.5</half_height>
+                            </Cylinder>
+                        </attached_geometry>
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>..</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 0 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>1.5707963267948966 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                    <PhysicalOffsetFrame name="physicaloffsetframe_0">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry>
+                            <Brick name="_geom_1">
+                                <!--List of components that this component owns and serializes.-->
+                                <components />
+                                <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                                <socket_frame>..</socket_frame>
+                                <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                                <input_transform></input_transform>
+                                <!--Scale factors in X, Y, Z directions respectively.-->
+                                <scale_factors>1 1 1</scale_factors>
+                                <!--Default appearance attributes for this Geometry-->
+                                <Appearance>
+                                    <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                    <visible>true</visible>
+                                    <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                    <opacity>1</opacity>
+                                    <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                    <color>1 1 1</color>
+                                    <!--Visuals applied to surfaces associated with this Appearance.-->
+                                    <SurfaceProperties>
+                                        <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                        <representation>3</representation>
+                                    </SurfaceProperties>
+                                </Appearance>
+                                <!--Half lengths in X, Y, Z respectively.-->
+                                <half_lengths>0.10000000000000001 0.75 0.25</half_lengths>
+                            </Brick>
+                        </attached_geometry>
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>..</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 0.75 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>0 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                    <PhysicalOffsetFrame name="physicaloffsetframe_1">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry>
+                            <Cylinder name="_geom_1">
+                                <!--List of components that this component owns and serializes.-->
+                                <components />
+                                <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                                <socket_frame>..</socket_frame>
+                                <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                                <input_transform></input_transform>
+                                <!--Scale factors in X, Y, Z directions respectively.-->
+                                <scale_factors>1 1 1</scale_factors>
+                                <!--Default appearance attributes for this Geometry-->
+                                <Appearance>
+                                    <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                    <visible>true</visible>
+                                    <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                    <opacity>1</opacity>
+                                    <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                    <color>1 0 0</color>
+                                    <!--Visuals applied to surfaces associated with this Appearance.-->
+                                    <SurfaceProperties>
+                                        <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                        <representation>3</representation>
+                                    </SurfaceProperties>
+                                </Appearance>
+                                <!--Radius of cylinder.-->
+                                <radius>0.25</radius>
+                                <!--Half-Height of cylinder.-->
+                                <half_height>0.5</half_height>
+                            </Cylinder>
+                        </attached_geometry>
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>..</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 1.5 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>1.5707963267948966 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                </components>
+                <!--The geometry used to display the axes of this Frame.-->
+                <FrameGeometry name="frame_geometry">
+                    <!--List of components that this component owns and serializes.-->
+                    <components />
+                    <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                    <socket_frame>..</socket_frame>
+                    <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                    <input_transform></input_transform>
+                    <!--Scale factors in X, Y, Z directions respectively.-->
+                    <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                    <!--Default appearance attributes for this Geometry-->
+                    <Appearance>
+                        <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                        <visible>true</visible>
+                        <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                        <opacity>1</opacity>
+                        <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                        <color>1 1 1</color>
+                        <!--Visuals applied to surfaces associated with this Appearance.-->
+                        <SurfaceProperties>
+                            <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                            <representation>3</representation>
+                        </SurfaceProperties>
+                    </Appearance>
+                    <!--The radius of the arrow-shaft used to display the frame.-->
+                    <display_radius>0.0040000000000000001</display_radius>
+                </FrameGeometry>
+                <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                <attached_geometry />
+                <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                <WrapObjectSet name="wrapobjectset">
+                    <!--List of components that this component owns and serializes.-->
+                    <components />
+                    <objects />
+                    <groups />
+                </WrapObjectSet>
+                <!--The mass of the body (kg)-->
+                <mass>1</mass>
+                <!--The location (Vec3) of the mass center in the body frame.-->
+                <mass_center>0 0 0</mass_center>
+                <!--The elements of the inertia tensor (Vec6) as [Ixx Iyy Izz Ixy Ixz Iyz] measured about the mass_center and not the body origin.-->
+                <inertia>1 1 1 0 0 0</inertia>
+            </Body>
+        </objects>
+        <groups />
+    </BodySet>
+    <!--List of joints that connect the bodies.-->
+    <JointSet name="jointset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects>
+            <PinJoint name="joint_1">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Path to a Component that satisfies the Socket 'parent_frame' of type PhysicalFrame (description: The parent frame for the joint.).-->
+                <socket_parent_frame>ground_offset</socket_parent_frame>
+                <!--Path to a Component that satisfies the Socket 'child_frame' of type PhysicalFrame (description: The child frame for the joint.).-->
+                <socket_child_frame>body_1_offset</socket_child_frame>
+                <!--List containing the generalized coordinates (q's) that parameterize this joint.-->
+                <coordinates>
+                    <Coordinate name="joint_1_coord_0">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
+                        <default_value>0</default_value>
+                        <!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
+                        <default_speed_value>0</default_speed_value>
+                        <!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
+                        <range>-10 10</range>
+                        <!--Flag indicating whether or not the values of the coordinates should be limited to the range, above.-->
+                        <clamped>false</clamped>
+                        <!--Flag indicating whether or not the values of the coordinates should be constrained to the current (e.g. default) value, above.-->
+                        <locked>false</locked>
+                        <!--If specified, the coordinate can be prescribed by a function of time. It can be any OpenSim Function with valid second order derivatives.-->
+                        <prescribed_function />
+                        <!--Flag indicating whether or not the values of the coordinates should be prescribed according to the function above. It is ignored if the no prescribed function is specified.-->
+                        <prescribed>false</prescribed>
+                        <!--Flag identifies whether or not this coordinate can change freely when posing the model to satisfy kinematic constraints.  When true, the coordinate's initial or specified value is ignored when considering constraints. This allows values for important coordinates, which have this flag set to false, to dictate the value of unimportant coordinates if they are linked via constraints.-->
+                        <is_free_to_satisfy_constraints>false</is_free_to_satisfy_constraints>
+                    </Coordinate>
+                </coordinates>
+                <!--Physical offset frames owned by the Joint that are typically used to satisfy the owning Joint's parent and child frame connections (sockets). PhysicalOffsetFrames are often used to describe the fixed transformation from a Body's origin to another location of interest on the Body (e.g., the joint center). When the joint is deleted, so are the PhysicalOffsetFrame components in this list.-->
+                <frames>
+                    <PhysicalOffsetFrame name="ground_offset">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry />
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>/ground</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 1.5 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>0 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                    <PhysicalOffsetFrame name="body_1_offset">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry />
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>/bodyset/body_1</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 0 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>0 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                </frames>
+            </PinJoint>
+            <PinJoint name="joint_1_0">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Path to a Component that satisfies the Socket 'parent_frame' of type PhysicalFrame (description: The parent frame for the joint.).-->
+                <socket_parent_frame>body_1_offset</socket_parent_frame>
+                <!--Path to a Component that satisfies the Socket 'child_frame' of type PhysicalFrame (description: The child frame for the joint.).-->
+                <socket_child_frame>body_1_0_offset</socket_child_frame>
+                <!--List containing the generalized coordinates (q's) that parameterize this joint.-->
+                <coordinates>
+                    <Coordinate name="joint_1_coord_0">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The value of this coordinate before any value has been set. Rotational coordinate value is in radians and Translational in meters.-->
+                        <default_value>0</default_value>
+                        <!--The speed value of this coordinate before any value has been set. Rotational coordinate value is in rad/s and Translational in m/s.-->
+                        <default_speed_value>0</default_speed_value>
+                        <!--The minimum and maximum values that the coordinate can range between. Rotational coordinate range in radians and Translational in meters.-->
+                        <range>-10 10</range>
+                        <!--Flag indicating whether or not the values of the coordinates should be limited to the range, above.-->
+                        <clamped>false</clamped>
+                        <!--Flag indicating whether or not the values of the coordinates should be constrained to the current (e.g. default) value, above.-->
+                        <locked>false</locked>
+                        <!--If specified, the coordinate can be prescribed by a function of time. It can be any OpenSim Function with valid second order derivatives.-->
+                        <prescribed_function />
+                        <!--Flag indicating whether or not the values of the coordinates should be prescribed according to the function above. It is ignored if the no prescribed function is specified.-->
+                        <prescribed>false</prescribed>
+                        <!--Flag identifies whether or not this coordinate can change freely when posing the model to satisfy kinematic constraints.  When true, the coordinate's initial or specified value is ignored when considering constraints. This allows values for important coordinates, which have this flag set to false, to dictate the value of unimportant coordinates if they are linked via constraints.-->
+                        <is_free_to_satisfy_constraints>false</is_free_to_satisfy_constraints>
+                    </Coordinate>
+                </coordinates>
+                <!--Physical offset frames owned by the Joint that are typically used to satisfy the owning Joint's parent and child frame connections (sockets). PhysicalOffsetFrames are often used to describe the fixed transformation from a Body's origin to another location of interest on the Body (e.g., the joint center). When the joint is deleted, so are the PhysicalOffsetFrame components in this list.-->
+                <frames>
+                    <PhysicalOffsetFrame name="body_1_offset">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry />
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>/bodyset/body_1</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 1.5 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>0 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                    <PhysicalOffsetFrame name="body_1_0_offset">
+                        <!--List of components that this component owns and serializes.-->
+                        <components />
+                        <!--The geometry used to display the axes of this Frame.-->
+                        <FrameGeometry name="frame_geometry">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <!--Path to a Component that satisfies the Socket 'frame' of type Frame.-->
+                            <socket_frame>..</socket_frame>
+                            <!--Path to an output (channel) to satisfy the one-value Input 'transform' of type SimTK::Transform (description: The transform that positions the Geometry in Ground so it can be positioned. Note, either the Geometry is attached to a Frame OR the input transform can be supplied, but not both. ).-->
+                            <input_transform></input_transform>
+                            <!--Scale factors in X, Y, Z directions respectively.-->
+                            <scale_factors>0.20000000000000001 0.20000000000000001 0.20000000000000001</scale_factors>
+                            <!--Default appearance attributes for this Geometry-->
+                            <Appearance>
+                                <!--Flag indicating whether the associated Geometry is visible or hidden.-->
+                                <visible>true</visible>
+                                <!--The opacity used to display the geometry between 0:transparent, 1:opaque.-->
+                                <opacity>1</opacity>
+                                <!--The color, (red, green, blue), [0, 1], used to display the geometry. -->
+                                <color>1 1 1</color>
+                                <!--Visuals applied to surfaces associated with this Appearance.-->
+                                <SurfaceProperties>
+                                    <!--The representation (1:Points, 2:Wire, 3:Shaded) used to display the object.-->
+                                    <representation>3</representation>
+                                </SurfaceProperties>
+                            </Appearance>
+                            <!--The radius of the arrow-shaft used to display the frame.-->
+                            <display_radius>0.0040000000000000001</display_radius>
+                        </FrameGeometry>
+                        <!--List of geometry attached to this Frame. Note, the geometry are treated as fixed to the frame and they share the transform of the frame when visualized-->
+                        <attached_geometry />
+                        <!--Set of wrap objects fixed to this body that GeometryPaths can wrap over.This property used to be a member of Body but was moved up with the introduction of Frames.-->
+                        <WrapObjectSet name="wrapobjectset">
+                            <!--List of components that this component owns and serializes.-->
+                            <components />
+                            <objects />
+                            <groups />
+                        </WrapObjectSet>
+                        <!--Path to a Component that satisfies the Socket 'parent' of type C (description: The parent frame to this frame.).-->
+                        <socket_parent>/bodyset/body_1_0</socket_parent>
+                        <!--Translational offset (in meters) of this frame's origin from the parent frame's origin, expressed in the parent frame.-->
+                        <translation>0 0 0</translation>
+                        <!--Orientation offset (in radians) of this frame in its parent frame, expressed as a frame-fixed x-y-z rotation sequence.-->
+                        <orientation>0 0 0</orientation>
+                    </PhysicalOffsetFrame>
+                </frames>
+            </PinJoint>
+        </objects>
+        <groups />
+    </JointSet>
+    <!--Controllers that provide the control inputs for Actuators.-->
+    <ControllerSet name="controllerset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects />
+        <groups />
+    </ControllerSet>
+    <!--Constraints in the model.-->
+    <ConstraintSet name="constraintset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects />
+        <groups />
+    </ConstraintSet>
+    <!--Forces in the model (includes Actuators).-->
+    <ForceSet name="forceset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects>
+            <CoordinateActuator name="coordinateactuator">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Flag indicating whether the force is applied or not. If true the forceis applied to the MultibodySystem otherwise the force is not applied.NOTE: Prior to OpenSim 4.0, this behavior was controlled by the 'isDisabled' property, where 'true' meant that force was not being applied. Thus, if 'isDisabled' is true, then 'appliesForce` is false.-->
+                <appliesForce>true</appliesForce>
+                <!--Minimum allowed value for control signal. Used primarily when solving for control values.-->
+                <min_control>-Inf</min_control>
+                <!--Maximum allowed value for control signal. Used primarily when solving for control values.-->
+                <max_control>Inf</max_control>
+                <!--Name of the generalized coordinate to which the actuator applies.-->
+                <coordinate>joint_1_coord_0</coordinate>
+                <!--The maximum generalized force produced by this actuator.-->
+                <optimal_force>1</optimal_force>
+            </CoordinateActuator>
+            <CoordinateActuator name="coordinateactuator_0">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Flag indicating whether the force is applied or not. If true the forceis applied to the MultibodySystem otherwise the force is not applied.NOTE: Prior to OpenSim 4.0, this behavior was controlled by the 'isDisabled' property, where 'true' meant that force was not being applied. Thus, if 'isDisabled' is true, then 'appliesForce` is false.-->
+                <appliesForce>true</appliesForce>
+                <!--Minimum allowed value for control signal. Used primarily when solving for control values.-->
+                <min_control>-Inf</min_control>
+                <!--Maximum allowed value for control signal. Used primarily when solving for control values.-->
+                <max_control>Inf</max_control>
+                <!--Name of the generalized coordinate to which the actuator applies.-->
+                <coordinate>joint_1_coord_0</coordinate>
+                <!--The maximum generalized force produced by this actuator.-->
+                <optimal_force>1</optimal_force>
+            </CoordinateActuator>
+            <CoordinateActuator name="coordinateactuator_1">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Flag indicating whether the force is applied or not. If true the forceis applied to the MultibodySystem otherwise the force is not applied.NOTE: Prior to OpenSim 4.0, this behavior was controlled by the 'isDisabled' property, where 'true' meant that force was not being applied. Thus, if 'isDisabled' is true, then 'appliesForce` is false.-->
+                <appliesForce>true</appliesForce>
+                <!--Minimum allowed value for control signal. Used primarily when solving for control values.-->
+                <min_control>-Inf</min_control>
+                <!--Maximum allowed value for control signal. Used primarily when solving for control values.-->
+                <max_control>Inf</max_control>
+                <!--Name of the generalized coordinate to which the actuator applies.-->
+                <coordinate>joint_1_coord_0</coordinate>
+                <!--The maximum generalized force produced by this actuator.-->
+                <optimal_force>1</optimal_force>
+            </CoordinateActuator>
+            <CoordinateActuator name="coordinateactuator_2">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Flag indicating whether the force is applied or not. If true the forceis applied to the MultibodySystem otherwise the force is not applied.NOTE: Prior to OpenSim 4.0, this behavior was controlled by the 'isDisabled' property, where 'true' meant that force was not being applied. Thus, if 'isDisabled' is true, then 'appliesForce` is false.-->
+                <appliesForce>true</appliesForce>
+                <!--Minimum allowed value for control signal. Used primarily when solving for control values.-->
+                <min_control>-Inf</min_control>
+                <!--Maximum allowed value for control signal. Used primarily when solving for control values.-->
+                <max_control>Inf</max_control>
+                <!--Name of the generalized coordinate to which the actuator applies.-->
+                <coordinate>joint_1_coord_0</coordinate>
+                <!--The maximum generalized force produced by this actuator.-->
+                <optimal_force>1</optimal_force>
+            </CoordinateActuator>
+        </objects>
+        <groups />
+    </ForceSet>
+    <!--Markers in the model.-->
+    <MarkerSet name="markerset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects>
+            <Marker name="effector_x">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Path to a Component that satisfies the Socket 'parent_frame' of type PhysicalFrame (description: The frame to which this station is fixed.).-->
+                <socket_parent_frame>/bodyset/body_1_0</socket_parent_frame>
+                <!--The fixed location of the station expressed in its parent frame.-->
+                <location>0 1.5 0</location>
+                <!--Flag (true or false) specifying whether the marker is fixed in its parent frame during the marker placement step of scaling.  If false, the marker is free to move within its parent Frame to match its experimental counterpart.-->
+                <fixed>false</fixed>
+            </Marker>
+            <Marker name="effector_y">
+                <!--List of components that this component owns and serializes.-->
+                <components />
+                <!--Path to a Component that satisfies the Socket 'parent_frame' of type PhysicalFrame (description: The frame to which this station is fixed.).-->
+                <socket_parent_frame>/bodyset/body_1_0</socket_parent_frame>
+                <!--The fixed location of the station expressed in its parent frame.-->
+                <location>0 1.5 0</location>
+                <!--Flag (true or false) specifying whether the marker is fixed in its parent frame during the marker placement step of scaling.  If false, the marker is free to move within its parent Frame to match its experimental counterpart.-->
+                <fixed>false</fixed>
+            </Marker>
+        </objects>
+        <groups />
+    </MarkerSet>
+    <!--Geometry to be used in contact forces.-->
+    <ContactGeometrySet name="contactgeometryset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects />
+        <groups />
+    </ContactGeometrySet>
+    <!--Probes in the model.-->
+    <ProbeSet name="probeset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects />
+        <groups />
+    </ProbeSet>
+    <!--Additional components in the model.-->
+    <ComponentSet name="componentset">
+        <!--List of components that this component owns and serializes.-->
+        <components />
+        <objects />
+        <groups />
+    </ComponentSet>
+    <!--Visual preferences for this model.-->
+    <ModelVisualPreferences name="modelvisualpreferences">
+        <!--Model display preferences-->
+        <ModelDisplayHints>
+            <!--Flag to indicate whether or not to show wrap geometry, default to true.-->
+            <show_wrap_geometry>true</show_wrap_geometry>
+            <!--Flag to indicate whether or not to show contact geometry, default to true.-->
+            <show_contact_geometry>true</show_contact_geometry>
+            <!--Flag to indicate whether or not to show path geometry for forces and actuators, default to true.-->
+            <show_path_geometry>true</show_path_geometry>
+            <!--Flag to indicate whether or not to show points along path are shown, default to true.-->
+            <show_path_points>true</show_path_points>
+            <!--Flag to indicate whether or not to show markers, default to true.-->
+            <show_markers>true</show_markers>
+            <!--Color is RGB, each components is in the range [0, 1], default to pink.-->
+            <marker_color>1 0.59999999999999998 0.80000000000000004</marker_color>
+            <!--Flag to indicate whether or not to show frames, default to false.-->
+            <show_frames>false</show_frames>
+            <!--Flag to indicate whether or not to show labels, default to false.-->
+            <show_labels>false</show_labels>
+            <!--Flag to indicate whether or not to show forces, default to true.-->
+            <show_forces>true</show_forces>
+            <!--Flag to indicate whether or not to show debug geometry, default to false.-->
+            <show_debug_geometry>false</show_debug_geometry>
+        </ModelDisplayHints>
+    </ModelVisualPreferences>
+</Model>
