@@ -71,10 +71,8 @@ bool InitController( const char* data )
         }
       }
     }
-    
     std::cout << "OSim: generated markers reference size" << controller.markersReference.updMarkerWeightSet().getSize() << std::endl;
     std::cout << "OSim: generated coordinates reference size: " << controller.coordinateReferences.size() << std::endl;
-    
     OpenSim::Set<OpenSim::Muscle> muscleSet = controller.osimModel->getMuscles();
     for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
 #ifdef OSIM_LEGACY

@@ -19,10 +19,10 @@ struct
 {
   OpenSim::Model* osimModel;
   SimTK::State state;
-  SimTK::Array_<OpenSim::CoordinateActuator*> actuatorsList;
-  SimTK::Array_<int> accelerationIndexesList;
-  SimTK::Array_<char*> jointNamesList;
-  SimTK::Array_<char*> axisNamesList;
+  std::vector<OpenSim::CoordinateActuator*> actuatorsList;
+  std::vector<int> accelerationIndexesList;
+  std::vector<char*> jointNamesList;
+  std::vector<char*> axisNamesList;
   enum RobotState currentControlState;
   SimTK::Vector emgInputs;
   EMGOptimizerImpl* emgProcessor;
