@@ -124,9 +124,14 @@ int main( int argc, char* argv[] )
         std::string axisLabel = markerLabels[ markerIndex ] + REFERENCE_AXIS_NAMES[ axisIndex ];
         osimModel.updVisualizer().updSimbodyVisualizer().addSlider( axisLabel, sliderID, -1.0, 1.0, 0.0 );
       }
+#ifdef OSIM_LEGACY
+      osimModel.getSimbodyEngine().getPosition( state, markers[ markerIndex ].getBody(), markers[ markerIndex ].getOffset(), markerInitialLocations[ markerIndex ] );
+#else
       markerInitialLocations[ markerIndex ] = markers[ markerIndex ].getLocationInGround( state );
+#endif
     }
     state.setTime( 0.0 );
+    SimTK::State ikState = state;
     std::chrono::steady_clock::time_point initialTime = std::chrono::steady_clock::now();
     std::chrono::steady_clock::time_point simulationTime = std::chrono::steady_clock::now();
     SimTK::Matrix_<SimTK::Vec3> markersTable( 1, markers.getSize() );
@@ -147,25 +152,25 @@ int main( int argc, char* argv[] )
           //std::cout << "setpoint ( " << markerSetpoints[ markerIndex ][ 0 ] << ", " << markerSetpoints[ markerIndex ][ 1 ] << ", " << markerSetpoints[ markerIndex ][ 2 ] << " )" << std::endl;
         }
       }
-      OpenSim::TimeSeriesTableVec3 markersTimeTable( std::vector<double>( { state.getTime() } ), markersTable, markerLabels );
+      OpenSim::TimeSeriesTableVec3 markersTimeTable( std::vector<double>( { ikState.getTime() } ), markersTable, markerLabels );
       OpenSim::MarkersReference markersReference( markersTimeTable, &markerWeights );
       OpenSim::InverseKinematicsSolver ikSolver( osimModel, markersReference, coordinateReferences, 0.0 );
       ikSolver.setAccuracy( 1.0e-4 ); //std::cout << "OSim: IK solver set up" << std::endl;
-      ikSolver.assemble( state ); //std::cout << "OSim: IK solver assembled" << std::endl;
-      ikSolver.track( state );
+      ikSolver.assemble( ikState ); //std::cout << "OSim: IK solver assembled" << std::endl;
+      ikSolver.track( ikState );
+      std::cout << "simulation time: " << state.getTime();
+      for( size_t jointIndex = 0; jointIndex < actuatorsList.size(); jointIndex++ )
+      {
+        OpenSim::Coordinate* jointCoordinate = actuatorsList[ jointIndex ]->getCoordinate();
+        jointCoordinate->setValue( state, jointCoordinate->getValue( ikState ) );
+        //jointCoordinate->setSpeedValue( state, jointCoordinate->getSpeedValue( ikState ) );
+        //jointCoordinate->setAccelerationValue( state, jointCoordinate->getAccelerationValue( ikState ) );
+        std::cout << ", position: " << jointCoordinate->getValue( state );
+      }
+      std::cout << std::endl;
       OpenSim::Manager manager( osimModel );
       manager.initialize( state );
       state = manager.integrate( std::chrono::duration_cast<std::chrono::duration<double>>( simulationTime - initialTime ).count() );
-//       std::cout << "simulation time: " << state.getTime();
-//       for( int markerIndex = 0; markerIndex < markers.getSize(); markerIndex++ )
-//       {
-//         size_t markerAxisIndex = markerAxes[ markerIndex ];
-//         double position = markers[ markerIndex ].getLocationInGround( state )[ markerAxisIndex ];
-//         double velocity = markers[ markerIndex ].getVelocityInGround( state )[ markerAxisIndex ];
-//         double acceleration = markers[ markerIndex ].getAccelerationInGround( state )[ markerAxisIndex ];
-//         std::cout << ", position: " << position;
-//       }
-//       std::cout << std::endl;
       std::this_thread::sleep_until( simulationTime + std::chrono::milliseconds( 10 ) );      
     }    
   }
