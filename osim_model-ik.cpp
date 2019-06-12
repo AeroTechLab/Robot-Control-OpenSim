@@ -3,7 +3,6 @@
 #include <OpenSim/Actuators/CoordinateActuator.h>
 #include <OpenSim/Simulation/InverseDynamicsSolver.h>
 #include <OpenSim/Simulation/InverseKinematicsSolver.h>
-#include <simbody/internal/Visualizer_InputListener.h>
 
 #include <iostream>
 #include <string>
@@ -66,7 +65,7 @@ bool InitController( const char* data )
           controller.markerWeights.adoptAndAppend( new OpenSim::MarkerWeight( markerName, 1.0 ) );
           controller.markers.adoptAndAppend( &(markerSet[ markerIndex ]) );
           controller.markerAxes.push_back( referenceAxisIndex );
-          controller.axisNamesList.push_back( (char*) markerSet[ markerIndex ].getName().c_str() );
+          controller.axisNamesList.push_back( (char*) markerName.c_str() );
           break;
         }
       }

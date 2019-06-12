@@ -2,7 +2,6 @@
 #include <OpenSim/Simulation/Model/Model.h>
 #include <OpenSim/Actuators/CoordinateActuator.h>
 #include <OpenSim/Simulation/InverseDynamicsSolver.h>
-#include <simbody/internal/Visualizer_InputListener.h>
 
 #include <iostream>
 #include <string>
