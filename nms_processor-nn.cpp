@@ -1,12 +1,12 @@
-#include "emg_optimizer-nn.h"
+#include "nms_processor-nn.h"
 
 #include "perceptron/multi_layer_perceptron.h"
 
-EMGOptimizerImpl::EMGOptimizerImpl( OpenSim::Model& model, ActuatorsList& actuatorsList, const size_t samplesNumber ) 
-: EMGOptimizer( 2, samplesNumber )
+NMSProcessor::NMSProcessor( OpenSim::Model& model, ActuatorsList& actuatorsList, const size_t samplesNumber ) 
+: NMSProcessorBase( 2, samplesNumber )
 {
-  inputsNumber = model.getMuscles().getSize() + EMG_INPUT_VARS_NUMBER * actuatorsList.size();
-  outputsNumber = EMG_OUTPUT_VARS_NUMBER * actuatorsList.size();
+  inputsNumber = model.getMuscles().getSize() + NMS_INPUT_VARS_NUMBER * actuatorsList.size();
+  outputsNumber = NMS_OUTPUT_VARS_NUMBER * actuatorsList.size();
   
   SimTK::Vector initialParametersList = GetInitialParameters();
   SimTK::Vector parametersMinList( initialParametersList.size() ), parametersMaxList( initialParametersList.size() );
@@ -21,14 +21,14 @@ EMGOptimizerImpl::EMGOptimizerImpl( OpenSim::Model& model, ActuatorsList& actuat
   //optimizationLog = DataLogging.InitLog( "joints/optimization", 6 );
 }
 
-EMGOptimizerImpl::~EMGOptimizerImpl()
+NMSProcessor::~NMSProcessor()
 {
   ResetSamplesStorage();
 
   //DataLogging.EndLog( optimizationLog );
 }
 
-SimTK::Vector EMGOptimizerImpl::GetInitialParameters()
+SimTK::Vector NMSProcessor::GetInitialParameters()
 {
   SimTK::Vector initialParametersList( 2 );
   initialParametersList[ 0 ] = 10;
@@ -37,7 +37,7 @@ SimTK::Vector EMGOptimizerImpl::GetInitialParameters()
   return initialParametersList;
 }
 
-void EMGOptimizerImpl::SetParameters( const SimTK::Vector& parametersList )
+void NMSProcessor::SetParameters( const SimTK::Vector& parametersList )
 {
   size_t hiddenNeuronsNumber = (size_t) parametersList[ 0 ];
   size_t trainingSamplesNumber = (size_t) parametersList[ 1 ];
@@ -54,7 +54,7 @@ void EMGOptimizerImpl::SetParameters( const SimTK::Vector& parametersList )
   (void) MLPerceptron_Train( perceptron, trainingInputsTable.data(), trainingOutputsTable.data(), trainingSamplesNumber );
 }
 
-int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
+int NMSProcessor::objectiveFunc( const SimTK::Vector& parametersList, bool newCoefficients, SimTK::Real& remainingError ) const
 {
   size_t hiddenNeuronsNumber = (size_t) parametersList[ 0 ];
   size_t trainingSamplesNumber = (size_t) parametersList[ 1 ];
@@ -88,13 +88,13 @@ int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool n
   validationOutputsTable.clear();
     
 	// Data logging for joint 0
-// 	for( int sampleIndex = 0; sampleIndex < EMG_POS_VARS_NUMBER; sampleIndex++ )
+// 	for( int sampleIndex = 0; sampleIndex < NMS_POS_VARS_NUMBER; sampleIndex++ )
 // 	  DataLogging.RegisterValues( optimizationLog, 1, positionSample[ sampleIndex ] );
-// 	DataLogging.RegisterValues( optimizationLog, 1, torqueSample[ EMG_FORCE_VARS_NUMBER + EMG_TORQUE_EXT ] );
+// 	DataLogging.RegisterValues( optimizationLog, 1, torqueSample[ NMS_FORCE_VARS_NUMBER + NMS_TORQUE_EXT ] );
 // 	for( int sampleIndex = 0; sampleIndex < emgSample.size(); sampleIndex++ )
 // 	  DataLogging.RegisterValues( optimizationLog, 1, emgSample[ sampleIndex ] );
-// 	DataLogging.RegisterValues( optimizationLog, 2, torqueSample[ EMG_FORCE_VARS_NUMBER + EMG_TORQUE_EXT ], emgTorqueOutputs[ EMG_FORCE_VARS_NUMBER + EMG_TORQUE_INT ] );
-// 	DataLogging.RegisterValues( optimizationLog, 2, torqueSample[ EMG_FORCE_VARS_NUMBER + EMG_TORQUE_EXT ], emgTorqueOutputs[ EMG_FORCE_VARS_NUMBER + EMG_STIFFNESS ] );
+// 	DataLogging.RegisterValues( optimizationLog, 2, torqueSample[ NMS_FORCE_VARS_NUMBER + NMS_TORQUE_EXT ], emgTorqueOutputs[ NMS_FORCE_VARS_NUMBER + NMS_TORQUE_INT ] );
+// 	DataLogging.RegisterValues( optimizationLog, 2, torqueSample[ NMS_FORCE_VARS_NUMBER + NMS_TORQUE_EXT ], emgTorqueOutputs[ NMS_FORCE_VARS_NUMBER + NMS_STIFFNESS ] );
 // 	DataLogging.EnterNewLine( optimizationLog );
 
   remainingError = trainingError + 0.5 * validationError;
@@ -104,15 +104,15 @@ int EMGOptimizerImpl::objectiveFunc( const SimTK::Vector& parametersList, bool n
   return 0;
 }
 
-SimTK::Vector EMGOptimizerImpl::CalculateOutputs( const SimTK::Vector& emgInputs, const SimTK::Vector& extraInputSample ) const
+SimTK::Vector NMSProcessor::CalculateOutputs( const SimTK::Vector& dynInputs, const SimTK::Vector& emgInputs ) const
 {
   double* inputsList = new double[ inputsNumber ];
   double* outputsList = new double[ outputsNumber ];
   
+  for( size_t valueIndex = 0; valueIndex < dynInputs.size(); valueIndex++ )
+    inputsList[ valueIndex ] = dynInputs[ valueIndex ];
   for( size_t valueIndex = 0; valueIndex < emgInputs.size(); valueIndex++ )
-    inputsList[ valueIndex ] = emgInputs[ valueIndex ];
-  for( size_t valueIndex = 0; valueIndex < extraInputSample.size(); valueIndex++ )
-    inputsList[ emgInputs.size() + valueIndex ] = extraInputSample[ valueIndex ];
+    inputsList[ dynInputs.size() + valueIndex ] = emgInputs[ valueIndex ];
   
   MLPerceptron_ProcessInput( perceptron, inputsList, outputsList );
   

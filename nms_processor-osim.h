@@ -1,14 +1,14 @@
-#ifndef EMG_OPTIMIZER_IMPL_H
-#define EMG_OPTIMIZER_IMPL_H
+#ifndef NMS_PROCESSOR_H
+#define NMS_PROCESSOR_H
 
-#include "emg_optimizer.h"
+#include "nms_processor-base.h"
 
-class EMGOptimizerImpl : public EMGOptimizer
+class NMSProcessor : public NMSProcessorBase
 {
   public:
     /* Constructor class. Parameters accessed in objectiveFunc() class */
-    EMGOptimizerImpl( OpenSim::Model&, ActuatorsList&, const size_t );
-    ~EMGOptimizerImpl();
+    NMSProcessor( OpenSim::Model&, ActuatorsList&, const size_t );
+    ~NMSProcessor();
  
     int objectiveFunc( const SimTK::Vector&, bool, SimTK::Real& ) const;
 
@@ -25,4 +25,4 @@ class EMGOptimizerImpl : public EMGOptimizer
     //Log optimizationLog;
 };
 
-#endif // EMG_OPTIMIZER_IMPL_H
+#endif // NMS_PROCESSOR_H

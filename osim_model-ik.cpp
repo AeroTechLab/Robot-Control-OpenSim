@@ -11,9 +11,9 @@
 #include "interface/robot_control.h"
 
 #ifndef USE_NN
-  #include "emg_optimizer-nn.h"
+  #include "nms_processor-nn.h"
 #else
-  #include "emg_optimizer-osim.h"
+  #include "nms_processor-osim.h"
 #endif
 
 struct
@@ -33,7 +33,7 @@ struct
   std::vector<char*> axisNamesList;
   enum RobotState currentControlState;
   SimTK::Vector emgInputs;
-  EMGOptimizerImpl* emgProcessor;
+  NMSProcessor* nmsProcessor;
 }
 controller;
 
@@ -118,7 +118,7 @@ bool InitController( const char* data )
       controller.markerInitialLocations[ markerIndex ] = controller.markers[ markerIndex ].getLocationInGround( controller.state );
 #endif
     
-    controller.emgProcessor = new EMGOptimizerImpl( *(controller.osimModel), controller.actuatorsList, 1000 );
+    controller.nmsProcessor = new NMSProcessor( *(controller.osimModel), controller.actuatorsList, 1000 );
     
     SetControlState( /*ROBOT_PASSIVE*/ROBOT_PREPROCESSING );
   }
@@ -200,7 +200,7 @@ void SetControlState( enum RobotState newControlState )
   else if( newControlState == ROBOT_PREPROCESSING )
   {
     std::cout << "reseting sampling count" << std::endl;
-    controller.emgProcessor->ResetSamplesStorage();
+    controller.nmsProcessor->ResetSamplesStorage();
   }
   else 
   {
@@ -209,15 +209,15 @@ void SetControlState( enum RobotState newControlState )
       if( controller.currentControlState == ROBOT_PREPROCESSING )
       {
         std::cout << "starting optimization" << std::endl;
-        SimTK::Vector parametersList = controller.emgProcessor->GetInitialParameters();
-        SimTK::Optimizer optimizer( *(controller.emgProcessor), SimTK::LBFGSB );
+        SimTK::Vector parametersList = controller.nmsProcessor->GetInitialParameters();
+        SimTK::Optimizer optimizer( *(controller.nmsProcessor), SimTK::LBFGSB );
         optimizer.setConvergenceTolerance( 0.05 );
         optimizer.useNumericalGradient( true );
         optimizer.setMaxIterations( 1000 );
         optimizer.setLimitedMemoryHistory( 500 );
         SimTK::Real remainingError = optimizer.optimize( parametersList );
         std::cout << "optimization ended with residual: " << remainingError << std::endl;
-        controller.emgProcessor->SetParameters( parametersList );
+        controller.nmsProcessor->SetParameters( parametersList );
 
         for( int forceIndex = 0; forceIndex < forceSet.getSize(); forceIndex++ )
 #ifdef OSIM_LEGACY
@@ -241,15 +241,15 @@ void PreProcessSample( SimTK::Vector& inputSample, SimTK::Vector& outputSample )
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
   {
     OpenSim::Coordinate* jointCoordinate = controller.actuatorsList[ jointIndex ]->getCoordinate();
-    int actuatorInputsIndex = controller.emgInputs.size() + jointIndex * EMG_INPUT_VARS_NUMBER;
-    jointCoordinate->setValue( controller.state, inputSample[ actuatorInputsIndex + EMG_POSITION ] );
-    jointCoordinate->setSpeedValue( controller.state, inputSample[ actuatorInputsIndex + EMG_VELOCITY ] );
+    int actuatorInputsIndex = controller.emgInputs.size() + jointIndex * NMS_INPUT_VARS_NUMBER;
+    jointCoordinate->setValue( controller.state, inputSample[ actuatorInputsIndex + NMS_POSITION ] );
+    jointCoordinate->setSpeedValue( controller.state, inputSample[ actuatorInputsIndex + NMS_VELOCITY ] );
     int jointAccelerationIndex = controller.accelerationIndexesList[ jointIndex ];
-    accelerationsList[ jointAccelerationIndex ] = inputSample[ actuatorInputsIndex + EMG_ACCELERATION ];
+    accelerationsList[ jointAccelerationIndex ] = inputSample[ actuatorInputsIndex + NMS_ACCELERATION ];
 #ifdef OSIM_LEGACY
-    controller.actuatorsList[ jointIndex ]->setOverrideForce( controller.state, inputSample[ actuatorInputsIndex + EMG_TORQUE_EXT ] );
+    controller.actuatorsList[ jointIndex ]->setOverrideForce( controller.state, inputSample[ actuatorInputsIndex + NMS_TORQUE_EXT ] );
 #else
-    controller.actuatorsList[ jointIndex ]->setOverrideActuation( controller.state, inputSample[ actuatorInputsIndex + EMG_TORQUE_EXT ] );
+    controller.actuatorsList[ jointIndex ]->setOverrideActuation( controller.state, inputSample[ actuatorInputsIndex + NMS_TORQUE_EXT ] );
 #endif
   }
   
@@ -259,13 +259,13 @@ void PreProcessSample( SimTK::Vector& inputSample, SimTK::Vector& outputSample )
     
     for( int jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
     {
-      int actuatorInputsIndex = controller.emgInputs.size() + jointIndex * EMG_INPUT_VARS_NUMBER;
-      double positionError = inputSample[ actuatorInputsIndex + EMG_SETPOINT ] - inputSample[ actuatorInputsIndex + EMG_POSITION ];
+      int actuatorInputsIndex = controller.emgInputs.size() + jointIndex * NMS_INPUT_VARS_NUMBER;
+      double positionError = inputSample[ actuatorInputsIndex + NMS_SETPOINT ] - inputSample[ actuatorInputsIndex + NMS_POSITION ];
       int jointTorqueIndex = controller.accelerationIndexesList[ jointIndex ];
       std::cout << "joint " << jointIndex << " coordinate index: " << jointTorqueIndex << std::endl;
-      int actuatorOutputsIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER;
-      outputSample[ actuatorOutputsIndex + EMG_TORQUE_INT ] = idForcesList[ jointIndex ];
-      outputSample[ actuatorOutputsIndex + EMG_STIFFNESS ] = ( std::abs( positionError ) > 1.0e-6 ) ? idForcesList[ jointIndex ] / ( positionError ) : 100.0;
+      int actuatorOutputsIndex = jointIndex * NMS_OUTPUT_VARS_NUMBER;
+      outputSample[ actuatorOutputsIndex + NMS_TORQUE_INT ] = idForcesList[ jointIndex ];
+      outputSample[ actuatorOutputsIndex + NMS_STIFFNESS ] = ( std::abs( positionError ) > 1.0e-6 ) ? idForcesList[ jointIndex ] / ( positionError ) : 100.0;
     }
   }
   catch( OpenSim::Exception ex )
@@ -282,32 +282,32 @@ void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMe
 {
   controller.state.setTime( 0.0 );
   // Acquire training/optimization samples
-  SimTK::Vector actuatorInputs( EMG_INPUT_VARS_NUMBER * controller.actuatorsList.size() );
-  SimTK::Vector actuatorOutputs( EMG_OUTPUT_VARS_NUMBER * controller.actuatorsList.size() );
+  SimTK::Vector actuatorInputs( NMS_INPUT_VARS_NUMBER * controller.actuatorsList.size() );
+  SimTK::Vector actuatorOutputs( NMS_OUTPUT_VARS_NUMBER * controller.actuatorsList.size() );
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
   {
-    size_t actuatorInputsIndex = jointIndex * EMG_INPUT_VARS_NUMBER;
-    actuatorInputs[ actuatorInputsIndex + EMG_POSITION ] = jointMeasuresList[ jointIndex ]->position;
-    actuatorInputs[ actuatorInputsIndex + EMG_VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
-    actuatorInputs[ actuatorInputsIndex + EMG_ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
-    actuatorInputs[ actuatorInputsIndex + EMG_SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
-    actuatorInputs[ actuatorInputsIndex + EMG_TORQUE_EXT ] = jointMeasuresList[ jointIndex ]->force;
+    size_t actuatorInputsIndex = jointIndex * NMS_INPUT_VARS_NUMBER;
+    actuatorInputs[ actuatorInputsIndex + NMS_POSITION ] = jointMeasuresList[ jointIndex ]->position;
+    actuatorInputs[ actuatorInputsIndex + NMS_VELOCITY ] = jointMeasuresList[ jointIndex ]->velocity;
+    actuatorInputs[ actuatorInputsIndex + NMS_ACCELERATION ] = jointMeasuresList[ jointIndex ]->acceleration;
+    actuatorInputs[ actuatorInputsIndex + NMS_SETPOINT ] = jointMeasuresList[ jointIndex ]->acceleration;
+    actuatorInputs[ actuatorInputsIndex + NMS_TORQUE_EXT ] = jointMeasuresList[ jointIndex ]->force;
   }
   // Calculate additional samples
   PreProcessSample( actuatorInputs, actuatorOutputs );
   // Store samples for training/optimization or calculating outputs
   if( controller.currentControlState == ROBOT_PREPROCESSING )
-    controller.emgProcessor->StoreSamples( controller.emgInputs, actuatorInputs, actuatorOutputs );
+    controller.nmsProcessor->StoreSamples( actuatorInputs, controller.emgInputs, actuatorOutputs );
   else if( controller.currentControlState == ROBOT_OPERATION )
-    actuatorOutputs = controller.emgProcessor->CalculateOutputs( controller.emgInputs, actuatorInputs );
+    actuatorOutputs = controller.nmsProcessor->CalculateOutputs( actuatorInputs, controller.emgInputs );
   // Set joint state measurements for forward kinematics/dynamics
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
   {
     OpenSim::Coordinate* jointCoordinate = controller.actuatorsList[ jointIndex ]->getCoordinate();
     jointCoordinate->setValue( controller.state, jointMeasuresList[ jointIndex ]->position );
     jointCoordinate->setSpeedValue( controller.state, jointMeasuresList[ jointIndex ]->velocity );
-    size_t actuatorOutputsIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER;
-    double resultingTorque = jointMeasuresList[ jointIndex ]->force + actuatorOutputs[ actuatorOutputsIndex + EMG_TORQUE_INT ];
+    size_t actuatorOutputsIndex = jointIndex * NMS_OUTPUT_VARS_NUMBER;
+    double resultingTorque = jointMeasuresList[ jointIndex ]->force + actuatorOutputs[ actuatorOutputsIndex + NMS_TORQUE_INT ];
     controller.actuatorsList[ jointIndex ]->setOverrideActuation( controller.state, resultingTorque );
   }
   // Calculate resulting model state
@@ -348,7 +348,7 @@ void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMe
     jointSetpointsList[ jointIndex ]->velocity = jointCoordinate->getSpeedValue( controller.state );
     jointSetpointsList[ jointIndex ]->acceleration = jointCoordinate->getAccelerationValue( controller.state );
     double controlAction = jointSetpointsList[ jointIndex ]->position - jointMeasuresList[ jointIndex ]->position;
-    size_t actuatorOutputsIndex = jointIndex * EMG_OUTPUT_VARS_NUMBER;
-    jointSetpointsList[ jointIndex ]->force = controlAction - actuatorOutputs[ actuatorOutputsIndex + EMG_TORQUE_INT ];
+    size_t actuatorOutputsIndex = jointIndex * NMS_OUTPUT_VARS_NUMBER;
+    jointSetpointsList[ jointIndex ]->force = controlAction - actuatorOutputs[ actuatorOutputsIndex + NMS_TORQUE_INT ];
   }
 }

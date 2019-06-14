@@ -8,10 +8,10 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 set( BUILD_LEGACY OFF CACHE BOOL "Build plug-in for OpenSim 3.x" )
 
-add_library( OpenSimModel MODULE osim_model.cpp emg_optimizer-osim.cpp )
-add_library( OpenSimModelNN MODULE osim_model.cpp emg_optimizer-nn.cpp )
-add_library( OpenSimModelIK MODULE osim_model-ik.cpp emg_optimizer-osim.cpp )
-add_library( OpenSimModelIKNN MODULE osim_model-ik.cpp emg_optimizer-nn.cpp )
+add_library( OpenSimModel MODULE osim_model.cpp nms_processor-base.cpp nms_processor-osim.cpp )
+add_library( OpenSimModelNN MODULE osim_model.cpp nms_processor-base.cpp nms_processor-nn.cpp )
+add_library( OpenSimModelIK MODULE osim_model-ik.cpp nms_processor-base.cpp nms_processor-osim.cpp )
+add_library( OpenSimModelIKNN MODULE osim_model-ik.cpp nms_processor-base.cpp nms_processor-nn.cpp )
 add_executable( OpenSimModelBuilder osim_model_generator.cpp )
 add_executable( OpenSimModelLoader osim_model_loader.cpp )
 
