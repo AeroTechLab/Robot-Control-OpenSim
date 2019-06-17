@@ -45,14 +45,14 @@ const size_t VEC3_SIZE = SimTK::Vec3::size();
 
 bool InitController( const char* data )
 { 
-  const char* REFERENCE_AXIS_NAMES[ 3 ] = { "_x", "_y", "_z" };
+  const char* REFERENCE_AXIS_NAMES[ VEC3_SIZE ] = { "_x", "_y", "_z" };
   
   try 
   { // Create an OpenSim model from XML (.osim) file
     controller.osimModel = new OpenSim::Model( std::string( "config/robots/" ) + data + ".osim" );
     controller.osimModel->printBasicInfo( std::cout );
     controller.osimModel->setGravity( SimTK::Vec3( 0.0, -9.80665, 0.0 ) );
-
+    controller.osimModel->setUseVisualizer( false );
     const OpenSim::MarkerSet& markerSet = controller.osimModel->getMarkerSet(); std::cout << "OSim: found " << markerSet.getSize() << " markers" << std::endl;
     for( int markerIndex = 0; markerIndex < markerSet.getSize(); markerIndex++ )
     {
@@ -63,7 +63,7 @@ bool InitController( const char* data )
         controller.markerWeights.adoptAndAppend( new OpenSim::MarkerWeight( markerName, 1.0 ) );
         controller.markers.adoptAndAppend( &(markerSet[ markerIndex ]) );
         controller.markerLabels.push_back( markerName );
-        for( size_t referenceAxisIndex = 0; referenceAxisIndex < 3; referenceAxisIndex++ )
+        for( size_t referenceAxisIndex = 0; referenceAxisIndex < VEC3_SIZE; referenceAxisIndex++ )
         {
           std::string markerAxisName = markerName + REFERENCE_AXIS_NAMES[ referenceAxisIndex ];
           controller.axisNamesList.push_back( (char*) markerAxisName.c_str() );
@@ -92,7 +92,7 @@ bool InitController( const char* data )
       }
     }
     std::cout << "OpenSim model loaded successfully ! (" << controller.osimModel->getNumCoordinates() << " coordinates)" << std::endl;
-    controller.state = controller.osimModel->initializeState();    // Initialize the system
+    controller.state = controller.osimModel->initializeState();    std::cout << "OpenSim model initialized successfully !" << std::endl;
     for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
 #ifdef OSIM_LEGACY
       muscleSet[ muscleIndex ].setDisabled( controller.state, true );
@@ -108,7 +108,7 @@ bool InitController( const char* data )
 #endif
       controller.actuatorsList[ jointIndex ]->getCoordinate()->setValue( controller.state, 0.0 );
     }
-    
+    std::cout << "Muscles number: " << muscleSet.getSize() << ", actuators number: " << controller.actuatorsList.size() << std::endl;
     controller.markerInitialLocations.resize( controller.markers.getSize(), SimTK::Vec3( 0.0 ) );
     controller.markerSetpointsTable.resize( 1, controller.markers.getSize() );
     for( int markerIndex = 0; markerIndex < controller.markers.getSize(); markerIndex++ )
@@ -117,9 +117,9 @@ bool InitController( const char* data )
 #else
       controller.markerInitialLocations[ markerIndex ] = controller.markers[ markerIndex ].getLocationInGround( controller.state );
 #endif
-    
+    std::cout << "Initial locations taken" << std::endl;
     controller.nmsProcessor = new NMSProcessor( *(controller.osimModel), controller.actuatorsList, 1000 );
-    
+    std::cout << "Neuromusculoskeletal processor created" << std::endl;
     SetControlState( /*ROBOT_PASSIVE*/ROBOT_PREPROCESSING );
   }
   catch( OpenSim::Exception ex )
@@ -141,7 +141,7 @@ bool InitController( const char* data )
     return false;
   }
   
-  std::cout << "OpenSim model initialized successfully ! (" << controller.osimModel->getNumCoordinates() << " coordinates)" << std::endl;
+  std::cout << "OpenSim controller initialized successfully !" << std::endl;
   
   return true;
 }
@@ -321,9 +321,9 @@ void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMe
   std::vector<SimTK::Vec3> markerSetpoints;
   for( int markerIndex = 0; markerIndex < controller.markers.getSize(); markerIndex++ )
   {
-    for( size_t axisIndex = 0; axisIndex < 3; axisIndex++ )
+    for( size_t axisIndex = 0; axisIndex < VEC3_SIZE; axisIndex++ )
     {
-      size_t markerAxisIndex = 3 * markerIndex + axisIndex;
+      size_t markerAxisIndex = VEC3_SIZE * markerIndex + axisIndex;
       // Acquire translation/axis measurements 
       axisMeasuresList[ markerAxisIndex ]->position = controller.markers[ markerIndex ].getLocationInGround( controller.state )[ axisIndex ];
       axisMeasuresList[ markerAxisIndex ]->velocity = controller.markers[ markerIndex ].getVelocityInGround( controller.state )[ axisIndex ];

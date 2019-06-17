@@ -1,7 +1,7 @@
 #include "nms_processor-base.h"
 
 NMSProcessorBase::NMSProcessorBase( const size_t parametersNumber, const size_t samplesNumber ) 
-  : OptimizerSystem( parametersNumber ), MAX_SAMPLES_COUNT( samplesNumber ) {};
+  : OptimizerSystem( parametersNumber ), MAX_SAMPLES_COUNT( samplesNumber ) { std::cout << "Parameters number: " << parametersNumber << std::endl; }
     
 NMSProcessorBase::~NMSProcessorBase() { }
 

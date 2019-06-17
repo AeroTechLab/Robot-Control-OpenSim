@@ -66,9 +66,14 @@ int main()
       osimModel.addForce( controlActuator );
     }
       
+    OpenSim::Muscle* userMuscle = new OpenSim::Millard2012EquilibriumMuscle( "muscle", 1.0, 1.0, 1.0, 1.0 );
+    userMuscle->addNewPathPoint( "origin", osimModel.getBodySet().get( 0 ), SimTK::Vec3( 0.0 ) );
+    userMuscle->addNewPathPoint( "insertion", osimModel.getBodySet().get( 1 ),  SimTK::Vec3( 0.0 ) );
+    osimModel.addForce( userMuscle );
+      
     SimTK::State& state = osimModel.initSystem();
 
-    osimModel.print( "osim_robot.osim" );
+    osimModel.print( "osim-robot_arm.osim" );
   }
   catch( OpenSim::Exception exception )
   {

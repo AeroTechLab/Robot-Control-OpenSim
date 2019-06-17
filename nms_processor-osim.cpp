@@ -7,6 +7,8 @@ enum { EMG_MAX_FORCE, EMG_FIBER_LENGTH, EMG_SLACK_LENGTH, EMG_PENNATION_ANGLE, E
 NMSProcessor::NMSProcessor( OpenSim::Model& model, ActuatorsList& actuatorsList, const size_t samplesNumber ) 
 : NMSProcessorBase( EMG_OPT_VARS_NUMBER * model.getMuscles().getSize(), samplesNumber ), internalModel( model ), actuatorsList( actuatorsList )
 {
+  internalModel.setUseVisualizer( false );
+  std::cout << "Activation factors number: " << internalModel.getMuscles().getSize() << std::endl;
   activationFactorsList.resize( internalModel.getMuscles().getSize() );
   
   SimTK::Vector initialParametersList = GetInitialParameters();
@@ -16,8 +18,9 @@ NMSProcessor::NMSProcessor( OpenSim::Model& model, ActuatorsList& actuatorsList,
     parametersMinList[ parameterIndex ] = 0.5 * initialParametersList[ parameterIndex ];
     parametersMaxList[ parameterIndex ] = 1.5 * initialParametersList[ parameterIndex ];
   }
+  std::cout << "Setting parameter limits" << std::endl;
   setParameterLimits( parametersMinList, parametersMaxList );
-
+  std::cout << "Parameter limits set" << std::endl;
   //DataLogging.SetBaseDirectory( "test" );
   //optimizationLog = DataLogging.InitLog( "joints/optimization", 6 );
 }

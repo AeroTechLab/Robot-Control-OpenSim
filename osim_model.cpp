@@ -39,14 +39,12 @@ bool InitController( const char* data )
     // Create an OpenSim model from XML (.osim) file
     controller.osimModel = new OpenSim::Model( std::string( "config/robots/" ) + data + ".osim" );
     controller.osimModel->printBasicInfo( std::cout );
-    
     controller.osimModel->setGravity( SimTK::Vec3( 0.0, -9.80665, 0.0 ) );
-    
-    //controller.osimModel->setUseVisualizer( true ); // not for RT
+    controller.osimModel->setUseVisualizer( false ); // not for RT
 
     // Initialize the system
     controller.state = controller.osimModel->initSystem();
-
+    std::cout << "OpenSim model loaded successfully ! (" << controller.osimModel->getNumCoordinates() << " coordinates)" << std::endl;
     OpenSim::Set<OpenSim::Muscle> muscleSet = controller.osimModel->getMuscles();
     for( int muscleIndex = 0; muscleIndex < muscleSet.getSize(); muscleIndex++ )
 #ifdef OSIM_LEGACY
@@ -78,9 +76,9 @@ bool InitController( const char* data )
         }
       }
     }
-    
+    std::cout << "Initial locations taken" << std::endl;
     controller.nmsProcessor = new NMSProcessor( *(controller.osimModel), controller.actuatorsList, 1000 );
-    
+    std::cout << "Neuromusculoskeletal processor created" << std::endl;
     SetControlState( /*ROBOT_PASSIVE*/ROBOT_PREPROCESSING );
     
     std::cout << "OSim: integration manager created" << std::endl;
@@ -104,7 +102,7 @@ bool InitController( const char* data )
     return false;
   }
   
-  std::cout << "OpenSim model loaded successfully ! (" << controller.osimModel->getNumCoordinates() << " coordinates)" << std::endl;
+  std::cout << "OpenSim controller initialized successfully !" << std::endl;
   
   return true;
 }
