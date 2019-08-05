@@ -31,7 +31,7 @@ struct
   SimTK::Matrix_<SimTK::Vec3> markerSetpointsTable;
   std::vector<char*> jointNamesList;
   std::vector<char*> axisNamesList;
-  enum RobotState currentControlState;
+  enum ControlState controlState;
   SimTK::Vector emgInputs;
   NMSProcessor* nmsProcessor;
 }
@@ -120,7 +120,7 @@ bool InitController( const char* data )
     std::cout << "Initial locations taken" << std::endl;
     controller.nmsProcessor = new NMSProcessor( *(controller.osimModel), controller.actuatorsList, 1000 );
     std::cout << "Neuromusculoskeletal processor created" << std::endl;
-    SetControlState( /*ROBOT_PASSIVE*/ROBOT_PREPROCESSING );
+    SetControlState( /*CONTROL_PASSIVE*/CONTROL_PREPROCESSING );
   }
   catch( OpenSim::Exception ex )
   {
@@ -177,7 +177,7 @@ size_t GetExtraOutputsNumber( void ) { return 0; }
          
 void GetExtraOutputsList( double* outputsList ) { }
 
-void SetControlState( enum RobotState newControlState )
+void SetControlState( enum ControlState newControlState )
 { 
   std::cout << "setting new control state: " << newControlState;
 
@@ -189,24 +189,24 @@ void SetControlState( enum RobotState newControlState )
     forceSet[ forceIndex ].setAppliesForce( controller.state, false );
 #endif
 
-  if( newControlState == ROBOT_OFFSET )
+  if( newControlState == CONTROL_OFFSET )
   {
     std::cout << "starting offset phase" << std::endl;
   }
-  else if( newControlState == ROBOT_CALIBRATION )
+  else if( newControlState == CONTROL_CALIBRATION )
   {
     std::cout << "starting calibration phase" << std::endl;
   }
-  else if( newControlState == ROBOT_PREPROCESSING )
+  else if( newControlState == CONTROL_PREPROCESSING )
   {
     std::cout << "reseting sampling count" << std::endl;
     controller.nmsProcessor->ResetSamplesStorage();
   }
   else 
   {
-    if( newControlState == ROBOT_OPERATION )
+    if( newControlState == CONTROL_OPERATION )
     {
-      if( controller.currentControlState == ROBOT_PREPROCESSING )
+      if( controller.controlState == CONTROL_PREPROCESSING )
       {
         std::cout << "starting optimization" << std::endl;
         SimTK::Vector parametersList = controller.nmsProcessor->GetInitialParameters();
@@ -229,7 +229,7 @@ void SetControlState( enum RobotState newControlState )
     }
   }
 
-  controller.currentControlState = newControlState;
+  controller.controlState = newControlState;
 }
 
 
@@ -278,7 +278,7 @@ void PreProcessSample( SimTK::Vector& inputSample, SimTK::Vector& outputSample )
   }
 }
 
-void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMeasuresList, RobotVariables** jointSetpointsList, RobotVariables** axisSetpointsList, double timeDelta )
+void RunControlStep( DoFVariables** jointMeasuresList, DoFVariables** axisMeasuresList, DoFVariables** jointSetpointsList, DoFVariables** axisSetpointsList, double timeDelta )
 {
   controller.state.setTime( 0.0 );
   // Acquire training/optimization samples
@@ -296,9 +296,9 @@ void RunControlStep( RobotVariables** jointMeasuresList, RobotVariables** axisMe
   // Calculate additional samples
   PreProcessSample( actuatorInputs, actuatorOutputs );
   // Store samples for training/optimization or calculating outputs
-  if( controller.currentControlState == ROBOT_PREPROCESSING )
+  if( controller.controlState == CONTROL_PREPROCESSING )
     controller.nmsProcessor->StoreSamples( actuatorInputs, controller.emgInputs, actuatorOutputs );
-  else if( controller.currentControlState == ROBOT_OPERATION )
+  else if( controller.controlState == CONTROL_OPERATION )
     actuatorOutputs = controller.nmsProcessor->CalculateOutputs( actuatorInputs, controller.emgInputs );
   // Set joint state measurements for forward kinematics/dynamics
   for( size_t jointIndex = 0; jointIndex < controller.actuatorsList.size(); jointIndex++ )
